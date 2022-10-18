@@ -45,23 +45,22 @@ class LobbyController {
 
 	createRequestForPlayer(io, player) {
 		if (player.currentRequestID != null) {
-			io.to(player.socket.id).emit('unsuccessful create');
-			return;
+			console.log("Player is in a request already");
+			return false;
 		}
 
 		player.currentRequestID = this.createRequest(player);
 		let request = this.getRequest(player.currentRequestID);
 
 		if (player.currentRequestID == null) {
-			io.to(player.socket.id).emit('unsuccessful create');
+			console.log("Could not create request");
+			return false;
 		}
-		else {
-			player.socket.join("room" + player.currentRequestID);
-			io.to(player.socket.id).emit('successful create', request.toJSON());
-			io.emit('new available request', request.toJSON());
-		}
-
-		console.log("Created game: " + (player.currentRequestID == null ? "false" : player.currentRequestID));
+			
+		player.socket.join("room" + player.currentRequestID);
+		io.emit('new available request', request.toJSON());
+		console.log("Created request: " + (player.currentRequestID == null ? "false" : player.currentRequestID));
+		return request.toJSON();		
 	}
 
 	joinRequestFromPlayer(io, player, requestID) {
@@ -98,17 +97,24 @@ class LobbyController {
 		}
 
 		let request = this.getRequest(player.currentRequestID);
+
+		if(request == null) {
+			console.log("Request already cancelled");
+			io.to(player.socket.id).emit('creator cancelled request', player.currentRequestID);
+		}
+
 		player.socket.leave("room" + player.currentRequestID);
 		if (request.creator.id == player.id) {
 			this.removeRequestById(player.currentRequestID);
 			io.emit('remove available request', request);
-			io.to('room' + player.currentRequestID).emit('creator cancelled request', player.currentRequestID)
+			io.to('room' + player.currentRequestID).emit('creator cancelled request', player.currentRequestID);
 			console.log("Cancelled created game");
 		}
 		else {
 			request.removePlayer(player.id);
-			io.emit('updated request', currentRequest.toJSON());
+			io.emit('updated request', request.toJSON());
 		}
+		player.currentRequestID = null;
 	}
 
 	startGame(io, player) {
@@ -143,14 +149,14 @@ class LobbyController {
 
 		if (game == null) {
 			console.log("No game to play card");
-			return { success: false, gameData: null };
+			return false;
 		}
 
 		let success = game.takeTurn(player.gamePlayerID, cardID);
 		if (success) {
 			game.sendDataToPlayers(io);
 		}
-		return { success: success, gameData: game.getPlayerGameData(player.gamePlayerID) };
+		return success;
 	}
 }
 

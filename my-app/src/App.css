@@ -1,38 +1,164 @@
-.App {
+html {
+	background-color: #3c3c3c;
+	color: white;
+	font-family: Helvetica;
+}
+
+h1 {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.button {
+	background-color: #555;
+	padding: 10px;
+	border-radius: 7px;
+	text-align: center;
+	cursor: pointer;
+	width: 200px;
+	margin: 7px auto;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.round-button {
+	width: 20px;
+	display: inline-block;
+	background-color: #555;
+	padding: 10px;
+	border-radius: 50%;
+	text-align: center;
+	cursor: pointer;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+#overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+	transition: display 1s;
 }
 
-.App-link {
-  color: #61dafb;
+#overlay-body {
+	position: fixed;
+	width: 60%;
+	padding: 20px;
+	max-width: 1000px;
+	top: 50%;
+	  left: 50%;
+	background-color: #3c3c3c;
+	margin: 0 auto;
+	transform: translate(-50%,-50%);
+  -ms-transform: translate(-50%,-50%);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.loading-circle {
+	margin: 0 auto;
+	display: block;
+	border: 12px solid #888; /* Light grey */
+	border-top: 12px solid #7bbce8; /* Blue */
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.invalid-text-input {
+	border-color: red;
+	outline: none;
+}
+
+.invalid-text-input:focus {
+	border-color: red;
+	box-shadow: 0 0 8px rgba(256, 0, 0, 0.6);
+}
+
+.game-request-container {
+	display: inline-block;
+	background-color: #555;
+	padding: 10px;
+	border-radius: 7px;
+	margin: 10px;
+}
+
+.join-game-button {
+	margin-top: 5px;
+	background-color: #666;
+	padding: 5px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.join-game-button:hover {
+	background-color: #777;
+}
+
+#lobby-buttons {
+	text-align: center;
+}
+
+#game-display {
+	display: none; /* Changed to flex */
+	justify-content: center;
+}
+
+ul.baraja-container li.card {
+	background-color: black;
+	color: white;
+	border-radius: 10px;
+	padding: 10px;
+	border: 1px solid #222;
+	box-shadow: 0 0px 20px rgb(0 0 0 / 0.4);
+}
+
+div.card-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 100%;
+}
+
+.upside-down-text {
+	text-align: left;
+	-moz-transform: scale(-1, -1);
+	-webkit-transform: scale(-1, -1);
+	-o-transform: scale(-1, -1);
+	-ms-transform: scale(-1, -1);
+	transform: scale(-1, -1);
+}
+
+ul.baraja-container li.card-color-blue {
+	background-color: #009;
+}
+
+ul.baraja-container li.card-color-red {
+	background-color: #900;
+}
+
+ul.baraja-container li.card-color-green {
+	background-color: #090;
+}
+
+ul.baraja-container li.card-color-yellow {
+	background-color: #bb0;
+}
+
+.joined-players {
+  text-align: center;
+}
+
+.marg-20 {
+  margin-top: 20px;
+}
+
+.txt-center {
+  text-align: center;
 }

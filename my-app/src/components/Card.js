@@ -1,39 +1,38 @@
 
-class Card extends React.Component {
-	constructor(props) {
-		super(props);
+import React, {useState, useContext, useCallback, useEffect} from 'react';
+import {SocketContext} from '../context/socket';
 
-		this.state = {
-			showComponent: true,
-		};
-	}
+export default function Card (props) {
 
-	cardClicked = async () => {
-		console.log("CLICKED", this.props.cardID);
-		if (this.props.canClick) {
-			let data = await gameSocketController.tryPlayingCard(this.props.cardID);
-			let success = data.success;
-			if (success) {
-				this.setState({
-					showComponent: false,
-				}, function() {
-					baraja.cardRemoved();
-					console.log("nextCard: ", data);
-					this.props.setNextCard(data.gameData.topCard);
-				});
-			}
+    const [showComponent, setShowComponent] = useState(true);
+
+	const socket = useContext(SocketContext);
+
+	const setComponentDisplay = useCallback((show) => {
+        setShowComponent(show);
+    }, []);
+
+	const cardClicked = () => {
+		console.log("CLICKED", props.cardID);
+		if (props.canClick) {
+			socket.emit('try playing card', props.cardID, onCardPlayed);
 		}
 	}
 
-	render() {
-		//-color-${this.props.color}
-		return this.state.showComponent ? (
-			<li onClick={this.cardClicked} className={'card ' + 'card-color-' + this.props.color}>
-				<div className='card-content'>
-					<h1>{this.props.number}</h1>
-					<h1 className='upside-down-text'>{this.props.number}</h1>
-				</div>
-			</li>
-		) : "";
-	}
+	const onCardPlayed = (success) => {
+		setComponentDisplay(false);
+
+		// baraja.cardRemoved();
+		// console.log("nextCard: ", data);
+		// this.props.setNextCard(data.gameData.topCard);
+	};
+
+	return showComponent ? (
+		<li onClick={cardClicked} className={'card card-color-' + props.color}>
+			<div className='card-content'>
+				<h1>{props.number}</h1>
+				<h1 className='upside-down-text'>{props.number}</h1>
+			</div>
+		</li>
+	) : "";
 }

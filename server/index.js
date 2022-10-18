@@ -30,19 +30,28 @@ httpserver.listen(3001, function() {
 let lobby = new LobbyController();
 
 io.on('connection', (socket) => {
-	console.log("Player connected");
+	console.log("Player connected: ", socket.id);
 	var player = new Player(socket);
 
-	socket.on('joined lobby', () => {
-		io.to(player.socket.id).emit('available requests', lobby.getActiveRequests());
+	socket.on('get available requests', (callback) => {
+		callback(lobby.getActiveRequests());
 	});
 
-	socket.on('set nickname', (name) => {
-		player.nickname = name;
+	socket.on('set nickname', (name, callback) => {
+		if(name != "") {
+			player.nickname = name;
+		}
+		console.log("set nickname success? ", (name != "" ? "true" : "false"));
+		callback(name != "");
 	});
 
-	socket.on('create request', () => {
-		lobby.createRequestForPlayer(io, player);
+	socket.on('create request', (callback) => {
+		let request = lobby.createRequestForPlayer(io, player);
+		callback(request);
+	});
+
+	socket.on('get current request', () => {
+		io.emit('updated request', lobby.getRequest(player.currentRequestID));
 	});
 
 	socket.on('join request', (requestID) => {
@@ -58,11 +67,8 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('try playing card', (cardID, callback) => {
-		let data = lobby.tryPlayingCard(io, player, cardID);
-		callback({
-			success: data.success,
-			gameData: data.gameData,
-		});
+		let success = lobby.tryPlayingCard(io, player, cardID);
+		callback(success);
 	});
 });
 
