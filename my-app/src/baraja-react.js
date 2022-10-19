@@ -7,81 +7,84 @@
  *  http://www.opensource.org/licenses/mit-license.php
  */
 
- 'use strict';
+'use strict';
 
- import React, { createRef }     from 'react';
- import PropTypes from 'prop-types';
- import Baraja    from './baraja';
- import './baraja.css';
- 
- /**
-  * Provides React Component wrapper.
-  */
- class BarajaJS extends React.Component {
-    container = createRef();
-    cardRefs = [];
+import React, { createRef } from 'react';
+import PropTypes from 'prop-types';
+import Baraja from './baraja';
+import './baraja.css';
 
-   componentDidMount() {
-     this.baraja = new Baraja(
-       this.container,
-       this.props.options
-     );
-   }
- 
-   componentDidUpdate(prevProps) {
+/**
+ * Provides React Component wrapper.
+ */
+class BarajaJS extends React.Component {
+  container = createRef();
+  cardRefs = [];
+
+  componentDidMount() {
+    this.baraja = new Baraja(
+      this.container,
+      this.props.options
+    );
+  }
+
+  componentDidUpdate(prevProps) {
+    let prevCount = this.baraja.itemTotal;
     this.baraja.getNewCards();
-    console.log("Children: ", this.props.children, prevProps.children)
-      if (!Object.is(this.props.fan, prevProps.fan)) { // || this.props.children != undefined && prevProps.children != undefined && this.props.children.length != prevProps.children.length) {
-        console.log("Trying to fan... ", this.baraja);
-       this.baraja.fan(this.props.fan);
-     }
-     else {
+    let newCount = this.baraja.itemTotal;
+    
+    if (!Object.is(this.props.fan, prevProps.fan) || prevCount != newCount) { // || this.props.children != undefined && prevProps.children != undefined && this.props.children.length != prevProps.children.length) {
+      console.log("Trying to fan... ", this.baraja);
+      this.baraja.isAnimating = false;
+      this.baraja.fan(this.props.fan);
+    }
+    else {
       console.log("Already fanning...");
-     }
- 
-     if (this.props.add !== prevProps.add) {
-        this.baraja.add(this.props.add);
-     }
- 
-     if (this.props.close !== prevProps.close) {
-       this.baraja.close();
-       console.log("Closing!");
-     }
- 
-     if (this.props.last !== prevProps.last) {
-       this.baraja.last();
-     }
- 
-     if (this.props.next !== prevProps.next) {
-       this.baraja.next();
-     }
-   }
- 
-   render() {
-     return (
-       <ul id={this.props.id} className="baraja-container" ref={this.container}>
-         {this.props.children}
-       </ul>
-     );
-   }
- };
- 
- BarajaJS.defaultProps = {
-   id: 'baraja-js',
-   fan: {},
-   close: false,
-   last: false,
-   next: false
- };
- 
- BarajaJS.propTypes = {
-   id: PropTypes.string,
-   options: PropTypes.object,
-   fan: PropTypes.object,
-  //  add: PropTypes.string,
-   close: PropTypes.bool,
-   last: PropTypes.bool,
-   next: PropTypes.bool
- };
- 
- export default BarajaJS;
+    }
+
+    if (this.props.add !== prevProps.add) {
+      this.baraja.add(this.props.add);
+    }
+
+    if (this.props.close !== prevProps.close) {
+      this.baraja.close();
+      console.log("Closing!");
+    }
+
+    if (this.props.last !== prevProps.last) {
+      this.baraja.last();
+    }
+
+    if (this.props.next !== prevProps.next) {
+      this.baraja.next();
+    }
+  }
+
+  render() {
+    return (
+      <ul id={this.props.id} className="baraja-container" ref={this.container}>
+        {this.props.children}
+      </ul>
+    );
+  }
+};
+
+BarajaJS.defaultProps = {
+  id: 'baraja-js',
+  fan: {},
+  close: false,
+  last: false,
+  next: false
+};
+
+BarajaJS.propTypes = {
+  id: PropTypes.string,
+  options: PropTypes.object,
+  fan: PropTypes.object,
+  add: PropTypes.string,
+  close: PropTypes.bool,
+  last: PropTypes.bool,
+  next: PropTypes.bool
+};
+
+export default BarajaJS;

@@ -28,6 +28,15 @@ class Game {
 		return success;
 	}
 
+	endTurnForPlayer(playerIndex) {
+		if (playerIndex != this.currentTurn) {
+			console.log("Not your turn");
+			return false;
+		}
+		this.cards.drawCardForPlayer(playerIndex);
+		this.nextTurn();
+	}
+
 	nextTurn() {
 		this.currentTurn = (this.currentTurn + 1) % this.numPlayers;
 	}

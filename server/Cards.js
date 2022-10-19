@@ -53,11 +53,19 @@ class Cards {
 		this.hands = [];
 		for (let i = 0; i < players.length; i++) {
 			players[i].gamePlayerID = i;
-			this.hands.push([]);
+			this.hands.push({});
 		}
 		this.resetDeck();
 		this.dealCards();
-		this.discardPile.push(this.getNextCard());
+		let failedCards = [];
+		let nextCard = this.getNextCard();
+		while(nextCard.color == "black") {
+			failedCards.push(nextCard);
+			nextCard = this.getNextCard();
+			console.log("Skipped wild as start...");
+		}
+		this.currentDeck = [...failedCards, ...this.currentDeck];
+		this.discardPile.push(nextCard);
 	}
 
 	dealCards() {
@@ -73,12 +81,24 @@ class Cards {
 		this.shuffle(this.currentDeck);
 	}
 
-	//change to pick up discard pile
+	//change to pick up discard pile when empty
 	getNextCard() {
 		if (this.currentDeck.length == 0) {
 			this.resetDeck();
 		}
 		return this.currentDeck.pop();
+	}
+
+	drawCardForPlayer(playerIndex) {
+		let index = 0;
+		let done = false;
+		while(!done) {
+			index++;
+			if(!this.hands[playerIndex].hasOwnProperty(index)) {
+				done = true;
+			}
+		}
+		this.hands[playerIndex][index] = this.getNextCard();
 	}
 
 	playCardFromPlayer(handIndex, cardIndex) {

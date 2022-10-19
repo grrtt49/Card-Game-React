@@ -494,6 +494,7 @@
       */
      function fan(settings = {}) {
 
+        console.log("FAN???");
          self.items = getItemsAsArray().slice();
          self.itemTotal = self.items.length;
          self.isClosed = false;
@@ -742,6 +743,10 @@
 
      this.getNewCards = function() {
         getNewCards();
+     }
+
+     this.itemTotal = function() {
+        return self.itemTotal;
      }
  }
  

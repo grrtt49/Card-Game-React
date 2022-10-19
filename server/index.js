@@ -70,9 +70,12 @@ io.on('connection', (socket) => {
 		lobby.getGameData(io, player);
 	});
 
-	socket.on('try playing card', (cardID, callback) => {
+	socket.on('try playing card', (cardID) => {
 		let success = lobby.tryPlayingCard(io, player, cardID);
-		callback(success);
+	});
+
+	socket.on('end turn', () => {
+		lobby.endTurn(io, player);
 	});
 });
 

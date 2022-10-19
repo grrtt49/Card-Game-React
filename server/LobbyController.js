@@ -163,6 +163,19 @@ class LobbyController {
 		}
 		return success;
 	}
+
+	endTurn(io, player) {
+		let game = this.getGame(player.currentGameID);
+
+		if (game == null) {
+			console.log("No game to end turn");
+			return false;
+		}
+
+		game.endTurnForPlayer(player.gamePlayerID);
+
+		game.sendDataToPlayers(io);
+	}
 }
 
 module.exports = LobbyController;
