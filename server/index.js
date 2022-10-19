@@ -66,6 +66,10 @@ io.on('connection', (socket) => {
 		lobby.startGame(io, player);
 	});
 
+	socket.on('get game data', () => {
+		lobby.getGameData(io, player);
+	});
+
 	socket.on('try playing card', (cardID, callback) => {
 		let success = lobby.tryPlayingCard(io, player, cardID);
 		callback(success);

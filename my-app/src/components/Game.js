@@ -1,26 +1,56 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {SocketContext} from '../context/socket';
 import Card from './Card';
-import Baraja from 'baraja-js';
+import Baraja from '../baraja-react';
 // import 'baraja-js/dist/css/baraja.css';
+
+const spreadFan = {
+	direction: 'right',
+	easing: 'ease-out',
+	origin: {
+		x: 50,
+		y: 200
+	},
+	speed: 500,
+	range: 100,
+	center: true
+}
 
 export default function Game (props) {
 
-	const [cards, setCards] = useState([]); //props.cards
+	const [cards, setCards] = useState([{}, {}]);
+	const [fan, setFan] = useState({});
     const [nextCard, setNextCard] = useState({
 		number: 1,
 		color: "red",
-	}); //props.nextCard
+	}); 
 
 	const socket = useContext(SocketContext);
 
-	const baraja = null;
-
-	const changeNextCard = useCallback((card) => {
-		setNextCard(card);
+	const changeNextCard = useCallback((cardID) => {
+		setNextCard(cards[cardID]);
+		removeCard(cardID);
 	}, []);
 
+	const changeCards = useCallback((cards) => {
+		setCards(cards);
+	}, []);
+
+	const changeFan = useCallback((fan) => {
+		setFan(fan);
+	}, []);
+
+	const removeCard = useCallback((cardID) => {
+		setCards(cards.filter((cardInList, i) => {
+			return i !== cardID;
+		}));
+	});
+
 	const getCardFromObj = (card, index, canClick = true) => {
+		if(card == undefined) {
+			console.log("Undefined card");
+			return;
+		}
 		return (<Card
 			key={index}
 			number={card.number}
@@ -33,27 +63,12 @@ export default function Game (props) {
 	const handleNewGameData = (gameData) => {
 		console.log("New game data: ", gameData);
 		changeNextCard(gameData.topCard);
+		changeCards(gameData.playerCards);
+		changeFan(spreadFan);
 	};
 
 	useEffect(() => {
-		// if (baraja == null) {
-		// 	baraja = new Baraja(document.getElementById('baraja-el'), {
-		// 		easing: 'ease-in-out',
-		// 		speed: 300,
-		// 	});
-
-		// 	baraja.fan({
-		// 		direction: 'right',
-		// 		easing: 'ease-out',
-		// 		origin: {
-		// 			x: 50,
-		// 			y: 200
-		// 		},
-		// 		speed: 500,
-		// 		range: 100,
-		// 		center: true
-		// 	});
-		// }
+		socket.emit('get game data');
 
 		socket.on('game data', handleNewGameData);
 
@@ -68,12 +83,14 @@ export default function Game (props) {
 
 	return (
 		<div id='game-display'>
-			<ul id='discard-pile' className='baraja-container'>
-				{getCardFromObj(nextCard, 100, false)}
-			</ul>
-			<ul id='baraja-el' className='baraja-container'>
-				{cardItems}
-			</ul>
+			<div>
+				<Baraja id='discard-pile' close={true}>
+					{getCardFromObj(nextCard, 100, false)}
+				</Baraja>
+				<Baraja fan={fan}>
+					{cardItems}
+				</Baraja>
+			</div>
 		</div>
 	);
 }

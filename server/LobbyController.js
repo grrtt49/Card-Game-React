@@ -144,6 +144,11 @@ class LobbyController {
 		newGame.sendDataToPlayers(io, "game started");
 	}
 
+	getGameData(io, player) {
+		let game = this.getGame(player.currentGameID);
+		io.to(player.socket.id).emit("game data", game.getPlayerGameData(player.gamePlayerID));
+	}
+
 	tryPlayingCard(io, player, cardID) {
 		let game = this.getGame(player.currentGameID);
 

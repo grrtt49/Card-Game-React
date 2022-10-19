@@ -21,6 +21,7 @@ export default function Card (props) {
 
 	const onCardPlayed = (success) => {
 		setComponentDisplay(false);
+		this.props.setNextCard(props.cardID);
 
 		// baraja.cardRemoved();
 		// console.log("nextCard: ", data);
@@ -30,7 +31,7 @@ export default function Card (props) {
 	return showComponent ? (
 		<li onClick={cardClicked} className={'card card-color-' + props.color}>
 			<div className='card-content'>
-				<h1>{props.number}</h1>
+				<h1 className='align-left'>{props.number}</h1>
 				<h1 className='upside-down-text'>{props.number}</h1>
 			</div>
 		</li>

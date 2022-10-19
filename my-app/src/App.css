@@ -1,3 +1,7 @@
+* {
+	box-sizing: border-box;
+}
+
 html {
 	background-color: #3c3c3c;
 	color: white;
@@ -106,7 +110,7 @@ h1 {
 }
 
 #game-display {
-	display: none; /* Changed to flex */
+	display: flex;
 	justify-content: center;
 }
 
@@ -114,9 +118,13 @@ ul.baraja-container li.card {
 	background-color: black;
 	color: white;
 	border-radius: 10px;
-	padding: 10px;
+	padding: 20px 20px;
 	border: 1px solid #222;
 	box-shadow: 0 0px 20px rgb(0 0 0 / 0.4);
+}
+
+.card h1 {
+	margin: 0;
 }
 
 div.card-content {
@@ -161,4 +169,12 @@ ul.baraja-container li.card-color-yellow {
 
 .txt-center {
   text-align: center;
+}
+
+.align-left {
+	text-align: left;
+}
+
+#discard-pile {
+	
 }
