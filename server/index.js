@@ -77,5 +77,9 @@ io.on('connection', (socket) => {
 	socket.on('end turn', () => {
 		lobby.endTurn(io, player);
 	});
+
+	socket.on('send message', (message) => {
+		lobby.sendMessage(io, player, message);
+	})
 });
 

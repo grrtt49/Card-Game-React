@@ -60,9 +60,10 @@ export default function Game(props) {
 	};
 
 	const handleEndTurn = () => {
-		if(showColorSelector) {
+		if(showColorSelector) { //if wild is selected
 			socket.emit('try playing card', selectedWild, selectedColor);
 			setShowColorSelector(false);
+			setSelectedWild(null);
 			return;
 		}
 		socket.emit('end turn');
@@ -74,15 +75,40 @@ export default function Game(props) {
 
 	const getSelectedWildForBaraja = () => {
 		if(!isNaN(parseInt(selectedWild))) {
-			return parseInt(selectedWild);
+			let selectedID =  parseInt(selectedWild);
+			let index = getCardIndexFromID(selectedID);
+			console.log("Selected wild ID:", selectedID);
+			console.log("Selected wild index:", index);
+			return index;
 		}
 		console.log("NaN :( ", selectedWild);
 	}
+
+	const getCardIndexFromID = (findCardId) => {
+		let cardIndex = null;
+		let i = 0;
+		Object.keys(cards).every((cardId) => {
+			if(cardId == findCardId) {
+				cardIndex = i;
+				return false;
+			}
+			i++;
+			return true;
+		});
+
+		return cardIndex;
+	};
+
+	const handlePlayerError = (msg) => {
+		console.log("Player error: ", msg);
+	};
 
 	useEffect(() => {
 		socket.emit('get game data');
 
 		socket.on('game data', handleNewGameData);
+
+		socket.on('player error', handlePlayerError);
 
 		return () => {
 			socket.off("game data", handleNewGameData);

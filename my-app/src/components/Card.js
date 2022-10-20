@@ -10,11 +10,17 @@ export default function Card (props) {
 		console.log("CLICKED", props.cardID);
 		if (props.canClick) {
 			if(props.color == "black") {
-				props.setShowColorSelector(true);
-				props.setSelectedWild(props.cardID);
+				if(props.selectedWild != props.cardID) {
+					props.setShowColorSelector(true);
+					props.setSelectedWild(props.cardID);
+					return;
+				}
+				props.setShowColorSelector(false);
+				props.setSelectedWild(null);
 				return;
 			}
 
+			props.setSelectedWild(null);
 			socket.emit('try playing card', props.cardID);
 		}
 	}

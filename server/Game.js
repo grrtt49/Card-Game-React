@@ -17,18 +17,21 @@ class Game {
 	takeTurn(playerIndex, cardIndex, color) {
 		if (playerIndex != this.currentTurn) {
 			console.log("Not your turn");
-			return false;
+			return {success: false, msg: "It is not your turn"};
 		}
 
 		let playedCard = this.cards.playCardFromPlayer(playerIndex, cardIndex, color);
-		if (!playedCard) {
-			return false;
+		if (!playedCard.success) {
+			return playedCard;
 		}
-		if(playedCard.drawAmount != null) {
+		if(playedCard.playedCard.drawAmount != null) {
 			this.nextTurn();
-			for (let i = 0; i < playedCard.drawAmount; i++) {
+			for (let i = 0; i < playedCard.playedCard.drawAmount; i++) {
 				this.cards.drawCardForPlayer(this.currentTurn);
 			}
+		}
+		if(playedCard.playedCard.number == "skip") {
+			this.nextTurn();
 		}
 		this.nextTurn();
 		return playedCard;
@@ -76,6 +79,23 @@ class Game {
 			currentTurn: this.currentTurn,
 			topCard: this.cards.getTopCard(),
 		};
+	}
+
+	sendMessageToPlayers(io, player, text) {
+		for (let i = 0; i < this.players.length; i++) {
+			let fromSelf = false;
+			if(this.players[i].id == player.id) {
+				fromSelf = true;
+			}
+
+			let message = {
+				text: text,
+				from: player.nickname,
+				fromSelf: fromSelf,
+			};
+			io.to(this.players[i].socket.id).emit("new message", message);
+			console.log("Sent message: ", message);
+		}
 	}
 }
 

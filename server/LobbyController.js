@@ -162,8 +162,12 @@ class LobbyController {
 		}
 
 		let success = game.takeTurn(player.gamePlayerID, cardID, color);
-		if (success) {
+		if (success.success) {
 			game.sendDataToPlayers(io);
+		}
+		else {
+			console.log("Sending error message: ", success);
+			io.to(player.socket.id).emit("player error", success.msg);
 		}
 		return success;
 	}
@@ -179,6 +183,17 @@ class LobbyController {
 		game.endTurnForPlayer(player.gamePlayerID);
 
 		game.sendDataToPlayers(io);
+	}
+
+	sendMessage(io, player, message) {
+		let game = this.getGame(player.currentGameID);
+
+		if (game == null) {
+			console.log("No game to send message");
+			return false;
+		}
+		
+		game.sendMessageToPlayers(io, player, message);
 	}
 }
 

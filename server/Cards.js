@@ -104,31 +104,31 @@ class Cards {
 	playCardFromPlayer(handIndex, cardIndex, color) {
 		if (handIndex >= this.hands.length || this.hands[handIndex][cardIndex] == null || this.hands[handIndex][cardIndex] == undefined) {
 			console.log("Card / hand index not found");
-			return false;
+			return {success: false, msg: "Card not found"};
 		}
-		let playedCard = this.playCard(this.hands[handIndex][cardIndex], color);
-		if (playedCard) {
+		let didPlayCard = this.playCard(this.hands[handIndex][cardIndex], color);
+		if (didPlayCard.success) {
+			let playedCard = this.hands[handIndex][cardIndex];
 			delete this.hands[handIndex][cardIndex];
+			didPlayCard.playedCard = playedCard;
 		}
-		return playedCard;
+		return didPlayCard;
 	}
 
 	playCard(card, color="") {
 		if (!this.canPlayCard(card)) {
-			console.log("Card not playable");
-			return false;
+			return {success:false, msg:"You cannot play that card right now"};
 		}
 		if(card.color == "black") {
 			if(color == "") {
 				console.log("Wild card has no new color assigned");
-				return false;
+				return {success:false, msg:"Choose a color for the wild card"};
 			}
 			
 			card.wildColor = color;
-			console.log("Setting wild color: ", card.wildColor);
 		}
 		this.discardPile.push(card);
-		return true;
+		return {success:true};
 	}
 
 	getTopCard() {
@@ -139,7 +139,7 @@ class Cards {
 		let lastCard = this.getTopCard();
 		if (card.color == "black" ||
 			card.color == lastCard.color ||
-			(card.hasOwnProperty("wildColor") && card.color == lastCard.wildColor) ||
+			(lastCard.hasOwnProperty("wildColor") && card.color == lastCard.wildColor) ||
 			card.number == lastCard.number) {
 			return true;
 		}
