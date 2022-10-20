@@ -34,12 +34,20 @@ class BarajaJS extends React.Component {
     let newCount = this.baraja.itemTotal;
     
     if (!Object.is(this.props.fan, prevProps.fan) || prevCount != newCount) { // || this.props.children != undefined && prevProps.children != undefined && this.props.children.length != prevProps.children.length) {
-      console.log("Trying to fan... ", this.baraja);
+      //console.log("Trying to fan... ", this.baraja);
       this.baraja.isAnimating = false;
       this.baraja.fan(this.props.fan);
     }
     else {
-      console.log("Already fanning...");
+      //console.log("Already fanning...");
+    }
+
+    if(this.props.selectedWild !== prevProps.selectedWild && this.props.selectedWild != null) {
+      console.log("Setting selected wild: ", this.props.selectedWild);
+      if(prevProps.selectedWild != null) {
+        this.baraja.unselectWild(prevProps.selectedWild);
+      }
+      this.baraja.setSelectedWild(this.props.selectedWild);
     }
 
     if (this.props.add !== prevProps.add) {
@@ -48,7 +56,7 @@ class BarajaJS extends React.Component {
 
     if (this.props.close !== prevProps.close) {
       this.baraja.close();
-      console.log("Closing!");
+      //console.log("Closing!");
     }
 
     if (this.props.last !== prevProps.last) {
@@ -74,7 +82,8 @@ BarajaJS.defaultProps = {
   fan: {},
   close: false,
   last: false,
-  next: false
+  next: false,
+  selectedWild: null,
 };
 
 BarajaJS.propTypes = {
@@ -84,7 +93,8 @@ BarajaJS.propTypes = {
   add: PropTypes.string,
   close: PropTypes.bool,
   last: PropTypes.bool,
-  next: PropTypes.bool
+  next: PropTypes.bool,
+  selectedWild: PropTypes.number,
 };
 
 export default BarajaJS;

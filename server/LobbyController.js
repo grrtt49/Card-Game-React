@@ -28,6 +28,10 @@ class LobbyController {
 		return this.requests.get(i);
 	}
 
+	/**
+	 * Returns the game at index i
+	 * @returns {Game}
+	 */
 	getGame(i) {
 		if (i == null) {
 			return null;
@@ -149,7 +153,7 @@ class LobbyController {
 		io.to(player.socket.id).emit("game data", game.getPlayerGameData(player.gamePlayerID));
 	}
 
-	tryPlayingCard(io, player, cardID) {
+	tryPlayingCard(io, player, cardID, color) {
 		let game = this.getGame(player.currentGameID);
 
 		if (game == null) {
@@ -157,7 +161,7 @@ class LobbyController {
 			return false;
 		}
 
-		let success = game.takeTurn(player.gamePlayerID, cardID);
+		let success = game.takeTurn(player.gamePlayerID, cardID, color);
 		if (success) {
 			game.sendDataToPlayers(io);
 		}

@@ -14,18 +14,24 @@ class Game {
 		this.currentTurn = 0;
 	}
 
-	takeTurn(playerIndex, cardIndex) {
+	takeTurn(playerIndex, cardIndex, color) {
 		if (playerIndex != this.currentTurn) {
 			console.log("Not your turn");
 			return false;
 		}
 
-		let success = this.cards.playCardFromPlayer(playerIndex, cardIndex);
-		if (!success) {
+		let playedCard = this.cards.playCardFromPlayer(playerIndex, cardIndex, color);
+		if (!playedCard) {
 			return false;
 		}
+		if(playedCard.drawAmount != null) {
+			this.nextTurn();
+			for (let i = 0; i < playedCard.drawAmount; i++) {
+				this.cards.drawCardForPlayer(this.currentTurn);
+			}
+		}
 		this.nextTurn();
-		return success;
+		return playedCard;
 	}
 
 	endTurnForPlayer(playerIndex) {

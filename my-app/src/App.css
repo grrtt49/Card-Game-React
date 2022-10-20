@@ -156,19 +156,19 @@ div.card-content {
   transform: scale(-1, -1);
 }
 
-ul.baraja-container li.card-color-blue {
+ul.baraja-container li.card-color-blue, .bg-blue {
   background-color: #009;
 }
 
-ul.baraja-container li.card-color-red {
+ul.baraja-container li.card-color-red, .bg-red {
   background-color: #900;
 }
 
-ul.baraja-container li.card-color-green {
+ul.baraja-container li.card-color-green, .bg-green {
   background-color: #090;
 }
 
-ul.baraja-container li.card-color-yellow {
+ul.baraja-container li.card-color-yellow, .bg-yellow {
   background-color: #bb0;
 }
 
@@ -191,7 +191,6 @@ ul.baraja-container li.card-color-yellow {
 .quarter-circle-bottom-right {
   width: 100px;
   height: 100px;
-  background: #090;
   border-radius: 0 0 100px 0;
   -moz-border-radius: 0 0 100px 0;
   -webkit-border-radius: 0 0 100px 0;
@@ -200,7 +199,6 @@ ul.baraja-container li.card-color-yellow {
 .quarter-circle-bottom-left {
   width: 100px;
   height: 100px;
-  background: #990;
   border-radius: 0 0 0 100px;
   -moz-border-radius: 0 0 0 100px;
   -webkit-border-radius: 0 0 0 100px;
@@ -209,7 +207,6 @@ ul.baraja-container li.card-color-yellow {
 .quarter-circle-top-right {
   width: 100px;
   height: 100px;
-  background: #900;
   border-radius: 0 100px 0 0;
   -moz-border-radius: 0 100px 0 0;
   -webkit-border-radius: 0 100px 0 0;
@@ -218,7 +215,6 @@ ul.baraja-container li.card-color-yellow {
 .quarter-circle-top-left {
   width: 100px;
   height: 100px;
-  background: #009;
   border-radius: 100px 0 0 0;
   -moz-border-radius: 100px 0 0 0;
   -webkit-border-radius: 100px 0 0 0;
@@ -227,6 +223,7 @@ ul.baraja-container li.card-color-yellow {
 .quarter-circle {
   cursor: pointer;
   transition: transform 0.2s;
+  transition: box-shadow 0.2s;
 }
 
 .quarter-circle:hover {
@@ -234,6 +231,13 @@ ul.baraja-container li.card-color-yellow {
   box-shadow: 0 0px 20px rgb(0 0 0 / 0.7);
   transition-timing-function: ease-in-out;
   z-index: 10;
+}
+
+.selected-color {
+  transform: scale(1.1);
+  box-shadow: 0 0px 20px rgb(0 0 0 / 0.7);
+  transition-timing-function: ease-in-out;
+  z-index: 9;
 }
 
 .circle-container {

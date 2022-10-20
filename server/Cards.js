@@ -101,22 +101,31 @@ class Cards {
 		this.hands[playerIndex][index] = this.getNextCard();
 	}
 
-	playCardFromPlayer(handIndex, cardIndex) {
+	playCardFromPlayer(handIndex, cardIndex, color) {
 		if (handIndex >= this.hands.length || this.hands[handIndex][cardIndex] == null || this.hands[handIndex][cardIndex] == undefined) {
 			console.log("Card / hand index not found");
 			return false;
 		}
-		let playedCard = this.playCard(this.hands[handIndex][cardIndex]);
+		let playedCard = this.playCard(this.hands[handIndex][cardIndex], color);
 		if (playedCard) {
 			delete this.hands[handIndex][cardIndex];
 		}
 		return playedCard;
 	}
 
-	playCard(card) {
+	playCard(card, color="") {
 		if (!this.canPlayCard(card)) {
 			console.log("Card not playable");
 			return false;
+		}
+		if(card.color == "black") {
+			if(color == "") {
+				console.log("Wild card has no new color assigned");
+				return false;
+			}
+			
+			card.wildColor = color;
+			console.log("Setting wild color: ", card.wildColor);
 		}
 		this.discardPile.push(card);
 		return true;
@@ -130,6 +139,7 @@ class Cards {
 		let lastCard = this.getTopCard();
 		if (card.color == "black" ||
 			card.color == lastCard.color ||
+			(card.hasOwnProperty("wildColor") && card.color == lastCard.wildColor) ||
 			card.number == lastCard.number) {
 			return true;
 		}

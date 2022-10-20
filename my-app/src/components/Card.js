@@ -4,36 +4,27 @@ import {SocketContext} from '../context/socket';
 
 export default function Card (props) {
 
-    // const [showComponent, setShowComponent] = useState(true);
-
 	const socket = useContext(SocketContext);
-
-	// const setComponentDisplay = useCallback((show) => {
-    //     setShowComponent(show);
-    // }, []);
 
 	const cardClicked = () => {
 		console.log("CLICKED", props.cardID);
 		if (props.canClick) {
+			if(props.color == "black") {
+				props.setShowColorSelector(true);
+				props.setSelectedWild(props.cardID);
+				return;
+			}
+
 			socket.emit('try playing card', props.cardID);
 		}
 	}
 
-	// const onCardPlayed = (success) => {
-	// 	setComponentDisplay(false);
-	// 	props.setNextCard(props.cardID);
-
-	// 	// baraja.cardRemoved();
-	// 	// console.log("nextCard: ", data);
-	// 	// this.props.setNextCard(data.gameData.topCard);
-	// };
-
-	return (// showComponent ? (
-		<li onClick={cardClicked} className={'card card-color-' + props.color}>
+	return (
+		<li onClick={cardClicked} className={'card card-color-' + props.color + (props.selectedWild == props.cardID ? " selected-wild" : "")}>
 			<div className='card-content'>
 				<h1 className='align-left'>{props.number}</h1>
 				<h1 className='upside-down-text'>{props.number}</h1>
 			</div>
 		</li>
-	); // : "";
+	);
 }
