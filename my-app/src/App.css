@@ -302,14 +302,14 @@ ul.baraja-container li.card-color-yellow, .bg-yellow {
 }
 
 .chat-message .message-label {
-	margin: 0 13px -3px 13px;
+	margin: 0 18px -3px 18px;
 	font-size: 12px;
 }
 
 .chat-message .message {
 	border-radius: 7px;
 	padding: 10px;
-	margin: 10px 10px 0 10px;
+	margin: 10px 15px 0 15px;
 	max-width: 320px;
 }
 

@@ -1,19 +1,27 @@
-import React, {useState, useContext, useCallback, useEffect} from 'react';
+import React, {useState, useContext, useCallback, useEffect, useRef} from 'react';
 import {SocketContext, socket} from '../context/socket';
 import { FaPaperPlane } from 'react-icons/fa';
 import Message from './Message';
-
+import { Scrollbars } from 'react-custom-scrollbars-2';
 
 export default function Messenger(props) {
 
     const socket = useContext(SocketContext);
 
+    const scrollbarRef = useRef();
+
     const [messageInputText, setMessageInputText] = useState('');
 	const [messages, setMessages] = useState([]);
+    const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+
+    const changeShouldScrollToBottom = useCallback((val) => {
+        setShouldScrollToBottom(val);
+    }, []);
 
     const handleNewMessage = (message) => {
         console.log("Got new message: ", message);
         setMessages(current => [...current, message]);
+        setShouldScrollToBottom(true);
     };
 
     const handleSendMessage = (event) => {
@@ -40,6 +48,12 @@ export default function Messenger(props) {
     useEffect(() => {
 		socket.on('new message', handleNewMessage);
 
+        console.log("Checking... ", shouldScrollToBottom);
+        if(shouldScrollToBottom) {
+            scrollbarRef.current.scrollToBottom();
+            setShouldScrollToBottom(false);
+        }
+
 		return () => {
 			socket.off("new message", handleNewMessage);
 		};
@@ -52,9 +66,9 @@ export default function Messenger(props) {
 
     return (
         <div id='chat-container'>
-			<div id='chat-log'>
+			<Scrollbars style={{ width: "100%", height: 300 }} ref={scrollbarRef}>
                 {messageItems}
-            </div>
+            </Scrollbars>
 			<form id='chat-form' onSubmit={handleSendMessage}>
 				<input id='chat-text' type='text' autoComplete="off" value={messageInputText} onChange={handleChangeMessageInput}/>
 				<div className='send-button'>
