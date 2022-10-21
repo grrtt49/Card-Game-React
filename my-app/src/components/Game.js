@@ -3,6 +3,9 @@ import { SocketContext } from '../context/socket';
 import Card from './Card';
 import Baraja from '../baraja-react';
 import ColorSelector from './ColorSelector';
+import Messenger from './Messenger';
+import Button from '@mui/material/Button';
+import { Stack } from '@mui/material';
 
 var spreadFan = {
 	direction: 'right',
@@ -99,16 +102,10 @@ export default function Game(props) {
 		return cardIndex;
 	};
 
-	const handlePlayerError = (msg) => {
-		console.log("Player error: ", msg);
-	};
-
 	useEffect(() => {
 		socket.emit('get game data');
 
 		socket.on('game data', handleNewGameData);
-
-		socket.on('player error', handlePlayerError);
 
 		return () => {
 			socket.off("game data", handleNewGameData);
@@ -124,19 +121,23 @@ export default function Game(props) {
 	let colorSelector = (showColorSelector ? <ColorSelector colorSelected={(color)=>handleColorClicked(color)} /> : ""); //showColorSelector
 
 	return (
-		<div id='game-display'>
-			<div>
-				<Baraja id='discard-pile' close={true}>
-					{getCardFromObj(nextCard, 100, false)}
-				</Baraja>
-				<Baraja fan={fan} selectedWild={getSelectedWildForBaraja()}>
-					{cardItems}
-				</Baraja>
-
-				<div className='button' onClick={handleEndTurn}>End Turn</div>
-
-				{colorSelector}
+		<div>
+			<div id='game-display'>
+				<div>
+					<Baraja id='discard-pile' close={true}>
+						{getCardFromObj(nextCard, 100, false)}
+					</Baraja>
+					<Baraja fan={fan} selectedWild={getSelectedWildForBaraja()}>
+						{cardItems}
+					</Baraja>
+				</div>
 			</div>
+			<Stack justifyContent="center" alignItems="center" spacing={3}>
+				{colorSelector}
+				<Button variant="contained" onClick={handleEndTurn}>End Turn</Button>
+			</Stack>
+
+			<Messenger />
 		</div>
 	);
 }

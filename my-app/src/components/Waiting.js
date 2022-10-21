@@ -1,6 +1,8 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {SocketContext} from '../context/socket';
-import JoinableGame from './JoinableRequest';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export default function Waiting (props) {
     const socket = useContext(SocketContext);
@@ -57,15 +59,17 @@ export default function Waiting (props) {
     //onClick='creatorStartGame();'
     //backToLobbyButtons(); removeCurrentRequest();
 
+    //TODO: Make the joined players into mui "Chips" 
+
     return (
-        <div id='create-game-display'>
-            <div className='loading-circle'></div>
+        <Stack direction="column" spacing={3} alignItems="center">
+            <CircularProgress />
             <p className='txt-center'>Finding opponents...</p>
             <div className='joined-players'>
                 {joinedPlayers}
             </div>
-            <div className='button marg-20' onClick={() => creatorStartGame()}>Start</div>
-            <div className='button marg-20' onClick={() => backToLobby()}>Cancel</div>
-        </div>
+            <Button variant="contained" sx={{width: 150}} onClick={() => creatorStartGame()}>Start</Button>
+            <Button variant="contained" sx={{width: 150}} onClick={() => backToLobby()}>Cancel</Button>
+        </Stack>
     );
 }

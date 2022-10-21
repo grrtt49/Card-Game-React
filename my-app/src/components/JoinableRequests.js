@@ -1,6 +1,8 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {SocketContext} from '../context/socket';
 import JoinableGame from './JoinableRequest';
+import Button from '@mui/material/Button';
+import { Stack } from '@mui/material';
 
 export default function JoinableRequests (props) {
     const socket = useContext(SocketContext);
@@ -10,10 +12,6 @@ export default function JoinableRequests (props) {
     const handleAvailableRequests = useCallback((games) => {
         console.log("Available games: ", games);
         setRequests(games);
-    }, []);
-
-    const addRequest = useCallback((request) => {
-        setRequests(requests => [...requests, request]);
     }, []);
 
     useEffect(() => {
@@ -37,7 +35,9 @@ export default function JoinableRequests (props) {
             <div id='available-games-container'>
                 {requestHTML}
             </div>
-            <div className='button' onClick={props.backToStart}>Back</div>
+            <Stack alignItems="center">
+                <Button variant="contained" sx={{width: 150}} onClick={props.backToStart}>Back</Button>
+            </Stack>
         </div>
     );
 }

@@ -3,12 +3,24 @@ import {SocketContext} from '../context/socket';
 import JoinableGames from './JoinableRequests';
 import Waiting from './Waiting';
 import Game from './Game';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import MuiAlert from '@mui/material/Alert';
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 export default function Lobby () {
     const socket = useContext(SocketContext);
 
     const [pageStatus, setPageStatus] = useState('start');
     const [nickname, setNickname] = useState('');
+    const [errorMessage, setErrorMessage] = useState("");
 
     const setWaitingScreen = useCallback(() => {
         setPageStatus('waiting');
@@ -61,31 +73,80 @@ export default function Lobby () {
         setJoinScreen();
     };
 
+    const handlePlayerError = (msg) => {
+		console.log("Player error: ", msg);
+        setErrorMessage(msg);
+	};
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setErrorMessage("");
+    };
+
+    useEffect(() => {
+        socket.on('player error', handlePlayerError);
+    }, [socket, errorMessage]);
+
+    const closeErrorIcon = (
+        <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={handleClose}
+        >
+            <CloseIcon fontSize="small" />
+        </IconButton>
+    );
+
+    let page = null;
     if(pageStatus == 'start') {
-        return (
-            <div id='lobby-buttons'>
-                <div id='nickname-container'>
-                    <input id='nickname-input' type='text' placeholder='Nickname (required)' onChange={(event) => handleNickname(event)} />
-                </div>
-                <div className='button' onClick={() => handleCreateRequest()}>Create Game</div>
-                <div className='button' onClick={() => handleJoinRequest()}>Join Game</div>
-            </div>
+        page = (
+            <Stack direction="column" spacing={3}>
+                <Stack direction="row" justifyContent="center">
+                    <TextField id="outlined-basic" label="Nickname (required)" variant="outlined" onChange={(event) => handleNickname(event)}/>
+                </Stack>
+                <Stack spacing={2} direction="row" justifyContent="center">
+                    <Button variant="contained"  sx={{width: 150}} onClick={() => handleCreateRequest()}>Create Game</Button>
+                    <Button variant="contained"  sx={{width: 150}} onClick={() => handleJoinRequest()}>Join Game</Button>
+                </Stack>
+            </Stack>
         );
     }
     else if(pageStatus == 'join') {
-        return (
+        page = (
             <JoinableGames backToStart={setStartScreen} goToWaiting={setWaitingScreen} />
         );
     }
     else if(pageStatus == 'waiting') {
-        return (
+        page = (
             <Waiting backToStart={setStartScreen} handleStartGame={handleStartGame} />
         );
     }
-
-    return (
-        <Game />
-    );
+    else {
+        page = (
+            <Game />
+        );
+    }
     
-
+    return (
+        <div>
+            {page}
+            <Snackbar
+                open={(errorMessage != "")}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                action={closeErrorIcon}
+            >
+                <Alert 
+                    severity="error"
+                    onClose={handleClose}
+                >
+                    {errorMessage}
+                </Alert>
+            </Snackbar>
+        </div>
+    );
 }

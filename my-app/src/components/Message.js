@@ -1,11 +1,21 @@
-
+import Box from '@mui/material/Box';
 
 export default function Message(props) {
 
     return (
-        <div className={'chat-message from-' + (props.isOther ? "other" : "self")}>
-            <div className='message-label'>{props.from}</div>
-            <div className='message'>{props.text}</div>
-        </div>
+        <Box className={'chat-message from-' + (props.isOther ? "other" : "self")}>
+            <Box className='message-label'>
+                {props.from}
+            </Box>
+            <Box 
+                sx={{
+                    backgroundColor: (props.isOther ? '#616161' : 'primary.main'),
+                    color: 'primary.contrastText',
+                }} 
+                className='message'
+            >
+                {props.text}
+            </Box>
+        </Box>
     );
 }
