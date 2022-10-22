@@ -51,33 +51,43 @@ class Game {
 	}
 
 	sendDataToPlayers(io, message = "game data") {
-		let numberOfCards = {};
+		let playerTurnData = [];
 		for (let i = 0; i < this.players.length; i++) {
-			numberOfCards[i] = this.cards.hands[i].length;
+			playerTurnData.push({
+				name: this.players[i].nickname,
+				isCurrent: this.currentTurn == i,
+				numCards: Object.keys(this.cards.hands[i]).length,
+			});
 		}
 
 		for (let i = 0; i < this.players.length; i++) {
 			let data = {
 				playerCards: this.cards.hands[i],
-				numberOfCards: numberOfCards,
 				currentTurn: this.currentTurn,
 				topCard: this.cards.getTopCard(),
+				playerTurnData: playerTurnData,
+				isTurn: this.currentTurn == i,
 			};
 			io.to(this.players[i].socket.id).emit(message, data);
 		}
 	}
 
 	getPlayerGameData(playerID) {
-		let numberOfCards = {};
+		let playerTurnData = [];
 		for (let i = 0; i < this.players.length; i++) {
-			numberOfCards[i] = this.cards.hands[i].length;
+			playerTurnData.push({
+				name: this.players[i].nickname,
+				isCurrent: this.currentTurn == i,
+				numCards: Object.keys(this.cards.hands[i]).length,
+			});
 		}
 
 		return {
 			playerCards: this.cards.hands[playerID],
-			numberOfCards: numberOfCards,
 			currentTurn: this.currentTurn,
 			topCard: this.cards.getTopCard(),
+			playerTurnData: playerTurnData,
+			isTurn: this.currentTurn == playerID,
 		};
 	}
 

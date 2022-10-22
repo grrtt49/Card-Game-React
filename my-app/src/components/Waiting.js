@@ -3,6 +3,7 @@ import {SocketContext} from '../context/socket';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
 
 export default function Waiting (props) {
     const socket = useContext(SocketContext);
@@ -52,7 +53,7 @@ export default function Waiting (props) {
 
     var joinedPlayers = players.map((player) => {
         return (
-            <div key={player.id} >{player.nickname}</div>
+            <Chip key={player.id} label={player.nickname} />
         );
     });
 
@@ -65,9 +66,9 @@ export default function Waiting (props) {
         <Stack direction="column" spacing={3} alignItems="center">
             <CircularProgress />
             <p className='txt-center'>Finding opponents...</p>
-            <div className='joined-players'>
+            <Stack spacing={3}>
                 {joinedPlayers}
-            </div>
+            </Stack>
             <Button variant="contained" sx={{width: 150}} onClick={() => creatorStartGame()}>Start</Button>
             <Button variant="contained" sx={{width: 150}} onClick={() => backToLobby()}>Cancel</Button>
         </Stack>

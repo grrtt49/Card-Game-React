@@ -21,6 +21,7 @@ export default function Lobby () {
     const [pageStatus, setPageStatus] = useState('start');
     const [nickname, setNickname] = useState('');
     const [errorMessage, setErrorMessage] = useState("");
+    const [infoMessage, setInfoMessage] = useState("");
 
     const setWaitingScreen = useCallback(() => {
         setPageStatus('waiting');
@@ -78,12 +79,25 @@ export default function Lobby () {
         setErrorMessage(msg);
 	};
 
+    const handlePlayerInfoMessage = (msg) => {
+        console.log("Player info: ", msg);
+        setInfoMessage(msg);
+    }
+
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
 
         setErrorMessage("");
+    };
+
+    const handleInfoClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setInfoMessage("");
     };
 
     useEffect(() => {
@@ -101,12 +115,23 @@ export default function Lobby () {
         </IconButton>
     );
 
+    const closeInfoIcon = (
+        <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={handleInfoClose}
+        >
+            <CloseIcon fontSize="small" />
+        </IconButton>
+    );
+
     let page = null;
     if(pageStatus == 'start') {
         page = (
             <Stack direction="column" spacing={3}>
                 <Stack direction="row" justifyContent="center">
-                    <TextField id="outlined-basic" label="Nickname (required)" variant="outlined" onChange={(event) => handleNickname(event)}/>
+                    <TextField id="outlined-basic" color="secondary" label="Nickname (required)" variant="outlined" onChange={(event) => handleNickname(event)}/>
                 </Stack>
                 <Stack spacing={2} direction="row" justifyContent="center">
                     <Button variant="contained"  sx={{width: 150}} onClick={() => handleCreateRequest()}>Create Game</Button>
@@ -127,7 +152,7 @@ export default function Lobby () {
     }
     else {
         page = (
-            <Game />
+            <Game handlePlayerInfoMessage={handlePlayerInfoMessage} />
         );
     }
     
@@ -145,6 +170,19 @@ export default function Lobby () {
                     onClose={handleClose}
                 >
                     {errorMessage}
+                </Alert>
+            </Snackbar>
+            <Snackbar
+                open={(infoMessage != "")}
+                autoHideDuration={2000}
+                onClose={handleInfoClose}
+                action={closeInfoIcon}
+            >
+                <Alert 
+                    severity="info"
+                    onClose={handleInfoClose}
+                >
+                    {infoMessage}
                 </Alert>
             </Snackbar>
         </div>

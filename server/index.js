@@ -80,6 +80,14 @@ io.on('connection', (socket) => {
 
 	socket.on('send message', (message) => {
 		lobby.sendMessage(io, player, message);
-	})
+	});
+
+	socket.on('disconnect', function() {
+		console.log('Player disconnected');
+
+		if(player.currentRequestID != null) {
+			lobby.removeCurrentRequest(io, player);
+		}
+	 });
 });
 

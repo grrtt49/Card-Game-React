@@ -5,7 +5,7 @@ import Baraja from '../baraja-react';
 import ColorSelector from './ColorSelector';
 import Messenger from './Messenger';
 import Button from '@mui/material/Button';
-import { Stack } from '@mui/material';
+import { Stack, Chip, Badge } from '@mui/material';
 
 var spreadFan = {
 	direction: 'right',
@@ -26,6 +26,7 @@ export default function Game(props) {
 	const [selectedColor, setSelectedColor] = useState("");
 	const [selectedWild, setSelectedWild] = useState(null);
 	const [fan, setFan] = useState(spreadFan);
+	const [playerTurnData, setPlayerTurnData] = useState([]);
 	const [nextCard, setNextCard] = useState({
 		number: 1,
 		color: "red",
@@ -42,24 +43,31 @@ export default function Game(props) {
 			console.log("Undefined card");
 			return;
 		}
-		return (<Card
-			key={index}
-			number={card.number}
-			color={(card.hasOwnProperty("wildColor") ? card.wildColor : card.color)}
-			cardID={index}
-			canClick={canClick}
-			selectedColor={selectedColor}
-			setShowColorSelector={setShowColorSelector}
-			setSelectedWild={setSelectedWild} 
-			selectedWild={selectedWild} />);
+		return (
+			<Card
+				key={index}
+				number={card.number}
+				color={(card.hasOwnProperty("wildColor") ? card.wildColor : card.color)}
+				cardID={index}
+				canClick={canClick}
+				selectedColor={selectedColor}
+				setShowColorSelector={setShowColorSelector}
+				setSelectedWild={setSelectedWild} 
+				selectedWild={selectedWild} 
+			/>
+		);
 	}
 
 	const handleNewGameData = (gameData) => {
 		console.log("New game data: ", gameData);
 		setNextCard(gameData.topCard);
 		changeCards(gameData.playerCards);
-		spreadFan.range = Math.min(180, 50 * Math.log(Object.keys(gameData.playerCards).length));
+		setPlayerTurnData(gameData.playerTurnData);
+		spreadFan.range = Math.min(120, 50 * Math.log(Object.keys(gameData.playerCards).length));
 		setFan(spreadFan);
+		if(gameData.isTurn) {
+			props.handlePlayerInfoMessage("It's your turn now!");
+		}
 	};
 
 	const handleEndTurn = () => {
@@ -80,8 +88,6 @@ export default function Game(props) {
 		if(!isNaN(parseInt(selectedWild))) {
 			let selectedID =  parseInt(selectedWild);
 			let index = getCardIndexFromID(selectedID);
-			console.log("Selected wild ID:", selectedID);
-			console.log("Selected wild index:", index);
 			return index;
 		}
 		console.log("NaN :( ", selectedWild);
@@ -120,8 +126,21 @@ export default function Game(props) {
 
 	let colorSelector = (showColorSelector ? <ColorSelector colorSelected={(color)=>handleColorClicked(color)} /> : ""); //showColorSelector
 
+	let playerChips = [];
+	playerTurnData.forEach((player, index) => {
+		playerChips.push(
+			<Badge badgeContent={player.numCards} color="secondary"  key={index}>
+				<Chip label={player.name} color={player.isCurrent ? "primary" : "default"} />
+			</Badge>
+		); 
+	});
+
 	return (
-		<div>
+		<Stack spacing={4}>
+			<Stack direction="row" justifyContent="center" spacing={3}>
+				{playerChips}
+			</Stack>
+
 			<div id='game-display'>
 				<div>
 					<Baraja id='discard-pile' close={true}>
@@ -138,6 +157,6 @@ export default function Game(props) {
 			</Stack>
 
 			<Messenger />
-		</div>
+		</Stack>
 	);
 }
