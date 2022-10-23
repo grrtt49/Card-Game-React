@@ -37,7 +37,8 @@ class Request {
 			"creator": this.creator.toJSON(),
 			"num_players": this.players.length,
 			"players": players_JSON,
-			"id": this.id
+			"id": this.id,
+			"maxPlayers": 10,
 		}
 	}
 

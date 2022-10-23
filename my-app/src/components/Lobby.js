@@ -22,6 +22,7 @@ export default function Lobby () {
     const [nickname, setNickname] = useState('');
     const [errorMessage, setErrorMessage] = useState("");
     const [infoMessage, setInfoMessage] = useState("");
+    const [isCreator, setIsCreator] = useState(false);
 
     const setWaitingScreen = useCallback(() => {
         setPageStatus('waiting');
@@ -61,6 +62,7 @@ export default function Lobby () {
 
     const createCallback = (request) => {
         if (request === false) return; //failed
+        setIsCreator(true);
         setWaitingScreen();
     }
 
@@ -100,9 +102,18 @@ export default function Lobby () {
         setInfoMessage("");
     };
 
+    const handleJoinedRequest = () => {
+        setIsCreator(false);
+        setWaitingScreen();
+    }
+
     useEffect(() => {
         socket.on('player error', handlePlayerError);
-    }, [socket, errorMessage]);
+
+        return () => {
+            socket.off("player error", handlePlayerError);
+        };
+    }, [socket, errorMessage, isCreator]);
 
     const closeErrorIcon = (
         <IconButton
@@ -131,7 +142,7 @@ export default function Lobby () {
         page = (
             <Stack direction="column" spacing={3}>
                 <Stack direction="row" justifyContent="center">
-                    <TextField id="outlined-basic" color="secondary" label="Nickname (required)" variant="outlined" onChange={(event) => handleNickname(event)}/>
+                    <TextField id="outlined-basic" color="white" label="Nickname (required)" variant="outlined" onChange={(event) => handleNickname(event)} value={nickname} />
                 </Stack>
                 <Stack spacing={2} direction="row" justifyContent="center">
                     <Button variant="contained"  sx={{width: 150}} onClick={() => handleCreateRequest()}>Create Game</Button>
@@ -142,17 +153,17 @@ export default function Lobby () {
     }
     else if(pageStatus == 'join') {
         page = (
-            <JoinableGames backToStart={setStartScreen} goToWaiting={setWaitingScreen} />
+            <JoinableGames backToStart={setStartScreen} goToWaiting={handleJoinedRequest} />
         );
     }
     else if(pageStatus == 'waiting') {
         page = (
-            <Waiting backToStart={setStartScreen} handleStartGame={handleStartGame} />
+            <Waiting backToStart={setStartScreen} handleStartGame={handleStartGame} isCreator={isCreator}/>
         );
     }
     else {
         page = (
-            <Game handlePlayerInfoMessage={handlePlayerInfoMessage} />
+            <Game handlePlayerInfoMessage={handlePlayerInfoMessage} backToHome={setStartScreen} />
         );
     }
     

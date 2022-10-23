@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
 
 export default function Waiting (props) {
     const socket = useContext(SocketContext);
@@ -57,10 +58,7 @@ export default function Waiting (props) {
         );
     });
 
-    //onClick='creatorStartGame();'
-    //backToLobbyButtons(); removeCurrentRequest();
-
-    //TODO: Make the joined players into mui "Chips" 
+    //TODO: disable start for non-creators with tooltip
 
     return (
         <Stack direction="column" spacing={3} alignItems="center">
@@ -69,7 +67,7 @@ export default function Waiting (props) {
             <Stack spacing={3}>
                 {joinedPlayers}
             </Stack>
-            <Button variant="contained" sx={{width: 150}} onClick={() => creatorStartGame()}>Start</Button>
+            <Button variant="contained" sx={{width: 150}} onClick={() => creatorStartGame()} disabled={!props.isCreator}>Start</Button>
             <Button variant="contained" sx={{width: 150}} onClick={() => backToLobby()}>Cancel</Button>
         </Stack>
     );

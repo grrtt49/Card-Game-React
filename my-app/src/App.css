@@ -92,14 +92,6 @@ h1 {
   box-shadow: 0 0 8px rgba(256, 0, 0, 0.6);
 }
 
-.game-request-container {
-  display: inline-block;
-  background-color: #ddd;
-  padding: 10px;
-  border-radius: 7px;
-  margin: 10px;
-}
-
 .join-game-button {
   margin-top: 5px;
   background-color: #666;
@@ -280,7 +272,7 @@ ul.baraja-container li.card-color-yellow, .bg-yellow {
 	width: 460px;
 	padding: 10px;
 	border-radius: 10px;
-	background-color: rgba(10, 10, 10, 0.93);
+	background-color: rgba(40, 40, 40, 0.93);
   z-index: 10000;
   position: fixed;
   bottom: 0;

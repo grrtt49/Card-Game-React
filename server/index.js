@@ -41,6 +41,9 @@ io.on('connection', (socket) => {
 		if(name != "") {
 			player.nickname = name;
 		}
+		else {
+			io.to(player.socket.id).emit("player error", "Please enter a nickname");
+		}
 		console.log("set nickname success? ", (name != "" ? "true" : "false"));
 		callback(name != "");
 	});
@@ -82,11 +85,25 @@ io.on('connection', (socket) => {
 		lobby.sendMessage(io, player, message);
 	});
 
+	socket.on('left current game', () => {
+		if(player.currentRequestID != null) {
+			lobby.removeCurrentRequest(io, player);
+		}
+
+		if(player.currentGameID != null) {
+			lobby.removePlayerFromGame(io, player);
+		}
+	});
+
 	socket.on('disconnect', function() {
 		console.log('Player disconnected');
 
 		if(player.currentRequestID != null) {
 			lobby.removeCurrentRequest(io, player);
+		}
+
+		if(player.currentGameID != null) {
+			lobby.removePlayerFromGame(io, player);
 		}
 	 });
 });

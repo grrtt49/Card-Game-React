@@ -1,4 +1,5 @@
 const Cards = require('./Cards');
+const Player = require('./Player');
 
 class Game {
 	cards;
@@ -6,12 +7,17 @@ class Game {
 	players;
 	numPlayers;
 
+	/**
+	 * 
+	 * @param {[Player]} players 
+	 */
 	constructor(players) {
 		this.cards = new Cards();
 		this.cards.startGame(players);
 		this.players = players;
 		this.numPlayers = players.length;
 		this.currentTurn = 0;
+		this.isReversed = false;
 	}
 
 	takeTurn(playerIndex, cardIndex, color) {
@@ -24,15 +30,21 @@ class Game {
 		if (!playedCard.success) {
 			return playedCard;
 		}
+
+		if(playedCard.playedCard.number == "skip") {
+			this.nextTurn();
+		}
+		else if(playedCard.playedCard.number == "reverse") {
+			this.isReversed = !this.isReversed;
+		}
+
 		if(playedCard.playedCard.drawAmount != null) {
 			this.nextTurn();
 			for (let i = 0; i < playedCard.playedCard.drawAmount; i++) {
 				this.cards.drawCardForPlayer(this.currentTurn);
 			}
 		}
-		if(playedCard.playedCard.number == "skip") {
-			this.nextTurn();
-		}
+
 		this.nextTurn();
 		return playedCard;
 	}
@@ -47,7 +59,7 @@ class Game {
 	}
 
 	nextTurn() {
-		this.currentTurn = (this.currentTurn + 1) % this.numPlayers;
+		this.currentTurn = (this.currentTurn + (!this.isReversed ? 1 : (this.numPlayers - 1))) % this.numPlayers;
 	}
 
 	sendDataToPlayers(io, message = "game data") {
@@ -57,7 +69,7 @@ class Game {
 				name: this.players[i].nickname,
 				isCurrent: this.currentTurn == i,
 				numCards: Object.keys(this.cards.hands[i]).length,
-			});
+			}); 
 		}
 
 		for (let i = 0; i < this.players.length; i++) {
@@ -67,8 +79,43 @@ class Game {
 				topCard: this.cards.getTopCard(),
 				playerTurnData: playerTurnData,
 				isTurn: this.currentTurn == i,
+				isReversed: this.isReversed,
 			};
 			io.to(this.players[i].socket.id).emit(message, data);
+		}
+	}
+
+	isGameOver() {
+		for(let i = 0; i < this.cards.hands.length; i++) {
+			if(Object.keys(this.cards.hands[i]).length <= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	sendGameOverToPlayers(io) {
+		let playerTurnData = [];
+		for (let i = 0; i < this.players.length; i++) {
+			playerTurnData.push({
+				name: this.players[i].nickname,
+				numCards: Object.keys(this.cards.hands[i]).length,
+			});
+		}
+
+		for (let i = 0; i < this.players.length; i++) {
+			let data = {
+				won: Object.keys(this.cards.hands[i]).length == 0,
+				players: playerTurnData,
+			};
+
+			io.to(this.players[i].socket.id).emit("game over", data);
+		}
+	}
+
+	resetPlayersRequestId() {
+		for (let i = 0; i < this.players.length; i++) {
+			this.players[i].currentRequestID = null;
 		}
 	}
 
@@ -88,6 +135,7 @@ class Game {
 			topCard: this.cards.getTopCard(),
 			playerTurnData: playerTurnData,
 			isTurn: this.currentTurn == playerID,
+			isReversed: this.isReversed,
 		};
 	}
 
@@ -106,6 +154,27 @@ class Game {
 			io.to(this.players[i].socket.id).emit("new message", message);
 			console.log("Sent message: ", message);
 		}
+	}
+
+	/**
+	 * 
+	 * @param {Player} player 
+	 */
+	removePlayer(player) {
+		for (let i = 0; i < this.players.length; i++) {
+			if(player.id == this.players[i].id) {
+				this.players[i].currentGameID = null;
+				this.players.splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	removeAllPlayers() {
+		for (let i = 0; i < this.players.length; i++) {
+			this.players[i].currentGameID = null;
+		}
+		this.players = [];
 	}
 }
 

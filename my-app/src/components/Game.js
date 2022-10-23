@@ -6,6 +6,9 @@ import ColorSelector from './ColorSelector';
 import Messenger from './Messenger';
 import Button from '@mui/material/Button';
 import { Stack, Chip, Badge } from '@mui/material';
+import GameOverScreen from './GameOverScreen';
+import Confetti from 'react-dom-confetti';
+import EastIcon from '@mui/icons-material/East';
 
 var spreadFan = {
 	direction: 'right',
@@ -21,12 +24,15 @@ var spreadFan = {
 
 export default function Game(props) {
 
+	const [showGameOver, setShowGameOver] = useState(false);
+	const [gameOverData, setGameOverData] = useState({});
 	const [cards, setCards] = useState([{}]);
 	const [showColorSelector, setShowColorSelector] = useState(false);
 	const [selectedColor, setSelectedColor] = useState("");
 	const [selectedWild, setSelectedWild] = useState(null);
 	const [fan, setFan] = useState(spreadFan);
 	const [playerTurnData, setPlayerTurnData] = useState([]);
+	const [isReversed, setIsReversed] = useState(false);
 	const [nextCard, setNextCard] = useState({
 		number: 1,
 		color: "red",
@@ -63,6 +69,7 @@ export default function Game(props) {
 		setNextCard(gameData.topCard);
 		changeCards(gameData.playerCards);
 		setPlayerTurnData(gameData.playerTurnData);
+		setIsReversed(gameData.isReversed);
 		spreadFan.range = Math.min(120, 50 * Math.log(Object.keys(gameData.playerCards).length));
 		setFan(spreadFan);
 		if(gameData.isTurn) {
@@ -108,15 +115,27 @@ export default function Game(props) {
 		return cardIndex;
 	};
 
+	const handleBackToHome = () => {
+		props.backToHome();
+		socket.emit("left current game");
+	};
+
+	const handleGameOver = (data) => {
+		setShowGameOver(true);
+		setGameOverData(data);
+	}
+
 	useEffect(() => {
 		socket.emit('get game data');
 
 		socket.on('game data', handleNewGameData);
+		socket.on('game over', handleGameOver);
 
 		return () => {
-			socket.off("game data", handleNewGameData);
+		socket.off('game over', handleGameOver);
+		socket.off("game data", handleNewGameData);
 		};
-	}, [socket]);
+	}, [socket, gameOverData, showGameOver]);
 
 	let cardItems = [];
 	Object.keys(cards).forEach((index) => {
@@ -135,10 +154,40 @@ export default function Game(props) {
 		); 
 	});
 
+	let val = true;
+
 	return (
 		<Stack spacing={4}>
-			<Stack direction="row" justifyContent="center" spacing={3}>
-				{playerChips}
+			<Stack spacing={2} alignItems="center">
+				<Stack direction="row" justifyContent="center" spacing={3}>
+					{playerChips}
+				</Stack>
+				<EastIcon 
+					sx={{
+						transition: "transform 0.5s ease-in",
+						transform: "rotate("+(isReversed ? 180 : 0)+"deg)"
+					}}
+				/>
+			</Stack>
+			<Stack justifyContent="center" alignItems="center">
+				<Confetti 
+					active={showGameOver} 
+					config={{
+						elementCount: 100,
+						spread: 80,
+						startVelocity: 50,
+						angle: 135,
+					}}
+				/>
+				<Confetti 
+					active={showGameOver} 
+					config={{
+						elementCount: 100,
+						spread: 80,
+						startVelocity: 50,
+						angle: 45,
+					}}
+				/>
 			</Stack>
 
 			<div id='game-display'>
@@ -157,6 +206,19 @@ export default function Game(props) {
 			</Stack>
 
 			<Messenger />
+			<GameOverScreen isOpen={showGameOver} onClose={()=>setShowGameOver(false)} onBackToHome={handleBackToHome} gameData={gameOverData}/>
 		</Stack>
 	);
+	/*
+				{
+					won: "true", 
+					players: [
+						{name: "grrtt", numCards: 0},
+						{name: "Nikki", numCards: 8},
+						{name: "Mom", numCards: 2},
+						{name: "Dad", numCards: 7},
+						{name: "Kevin", numCards: 1},
+					],
+				}
+	*/
 }

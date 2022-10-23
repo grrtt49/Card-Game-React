@@ -1,6 +1,7 @@
 const Game = require('./Game');
 const FixedList = require('./FixedList');
 const Request = require('./Request');
+const Player = require('./Player');
 
 class LobbyController {
 
@@ -11,7 +12,7 @@ class LobbyController {
 	constructor() {
 		this.games = new FixedList(50);
 		this.requests = new FixedList(50);
-		this.maxPlayersInGame = 8;
+		this.maxPlayersInGame = 10;
 	}
 
 	createRequest(player) {
@@ -21,6 +22,11 @@ class LobbyController {
 		return id;
 	}
 
+	/**
+	 * 
+	 * @param {*} i 
+	 * @returns {Request}
+	 */
 	getRequest(i) {
 		if (i == null) {
 			return null;
@@ -37,6 +43,10 @@ class LobbyController {
 			return null;
 		}
 		return this.games.get(i);
+	}
+
+	removeGameById(id) {
+		this.games.remove(id);
 	}
 
 	getActiveRequests() {
@@ -105,13 +115,15 @@ class LobbyController {
 		if(request == null) {
 			console.log("Request already cancelled");
 			io.to(player.socket.id).emit('creator cancelled request', player.currentRequestID);
+			io.to(player.socket.id).emit('player error', "The creator cancelled this game.");
 		}
 
 		player.socket.leave("room" + player.currentRequestID);
-		if (request.creator.id == player.id) {
+		if (request.creator != null && request.creator.id == player.id) {
 			this.removeRequestById(player.currentRequestID);
 			io.emit('remove available request', request);
 			io.to('room' + player.currentRequestID).emit('creator cancelled request', player.currentRequestID);
+			io.to('room' + player.currentRequestID).emit('player error', "The creator cancelled this game.");
 			console.log("Cancelled created game");
 		}
 		else {
@@ -119,6 +131,27 @@ class LobbyController {
 			io.emit('updated request', request.toJSON());
 		}
 		player.currentRequestID = null;
+	}
+
+	/**
+	 * 
+	 * @param {*} io 
+	 * @param {Player} player 
+	 */
+	removePlayerFromGame(io, player) {
+		let game = this.getGame(player.currentGameID);
+		
+		if(game == null) {
+			console.log("No game to leave");
+			return;
+		}
+
+		io.to(game.room).emit("player error", player.nickname + " left the game.");
+
+		game.removePlayer(player);
+		game.sendDataToPlayers(io);
+
+		player.currentGameID = null;
 	}
 
 	startGame(io, player) {
@@ -145,11 +178,16 @@ class LobbyController {
 
 		request.movePlayersToGame(gameId);
 
+		newGame.resetPlayersRequestId();
 		newGame.sendDataToPlayers(io, "game started");
 	}
 
 	getGameData(io, player) {
 		let game = this.getGame(player.currentGameID);
+		if(game == null) {
+			console.log("No game to get");
+			return;
+		}
 		io.to(player.socket.id).emit("game data", game.getPlayerGameData(player.gamePlayerID));
 	}
 
@@ -169,6 +207,13 @@ class LobbyController {
 			console.log("Sending error message: ", success);
 			io.to(player.socket.id).emit("player error", success.msg);
 		}
+
+		if(game.isGameOver()) {
+			console.log("Game is over");
+			game.sendGameOverToPlayers(io);
+			game.removeAllPlayers();
+		}
+
 		return success;
 	}
 

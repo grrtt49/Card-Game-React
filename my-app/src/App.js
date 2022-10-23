@@ -7,6 +7,7 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import PrimaryAppBar from './components/PrimaryAppBar';
 
 const darkTheme = createTheme({
   palette: {
@@ -16,8 +17,15 @@ const darkTheme = createTheme({
       main: '#610C63',
     },
     secondary: {
-      main: '#810955',
+      main: '#64b5f6',
     },
+    background: {
+      default: '#303030',
+      paper: '#424242',
+    },
+    white: {
+      main: '#ffffff',
+    }
   },
 });
 
@@ -26,6 +34,7 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <SocketContext.Provider value={socket}>
         <CssBaseline>
+          {/* <PrimaryAppBar /> */}
           <h1>Card Game</h1>
           <div>
             <Lobby />

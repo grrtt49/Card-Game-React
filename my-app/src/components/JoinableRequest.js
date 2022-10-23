@@ -1,6 +1,6 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {SocketContext} from '../context/socket';
-import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 
 export default function JoinableRequest (props) {
@@ -12,10 +12,17 @@ export default function JoinableRequest (props) {
     } 
 
     return (
-        <Box className='game-request-container'>
+        <Paper 
+            sx={{
+                display: "inline-block",
+                padding: "10px",
+                borderRadius: "7px",
+                margin: "10px",
+            }} 
+        >
             {props.nickname}
-            <p>{props.numPlayers} / 4 Players</p>
+            <p>{props.numPlayers} / {props.maxPlayers} Players</p>
             <Button  sx={{width: "100%"}} variant="contained" onClick={() => joinGame(props.requestId)}>Join</Button>
-        </Box>
+        </Paper>
     );
 }
