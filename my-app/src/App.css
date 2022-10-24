@@ -117,7 +117,7 @@ ul.baraja-container li.card {
   background-color: black;
   color: white;
   border-radius: 10px;
-  padding: 20px 20px;
+  padding: min(2vw, 20px) min(2vw, 20px);
   border: 1px solid #222;
   box-shadow: 0 0px 20px rgb(0 0 0 / 0.4);
 }
@@ -266,18 +266,6 @@ ul.baraja-container li.card-color-yellow, .bg-yellow {
 
 #chat-form { 
 	display: flex;
-}
-
-#chat-container {
-	width: 460px;
-	padding: 10px;
-	border-radius: 10px;
-	background-color: rgba(40, 40, 40, 0.93);
-  z-index: 10000;
-  position: fixed;
-  bottom: 0;
-  right: 5%;
-  backdrop-filter: blur(5px);
 }
 
 #chat-log {

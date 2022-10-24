@@ -1,6 +1,8 @@
-ul.baraja-container {
+  ul.baraja-container {
     width: 11vw;
-    height: 14vw;
+    height: 16vw;
+    min-width: 70px;
+    min-height: 100px;
     margin: 0 auto 30px;
     position: relative;
     padding: 0;

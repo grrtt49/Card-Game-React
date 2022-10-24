@@ -24,6 +24,7 @@ function Baraja(container, options = {}) {
   const defaults = {
     easing: "ease-in-out",
     speed: 300,
+    hoverMagnitude: 70,
   };
 
   (function () {
@@ -34,6 +35,8 @@ function Baraja(container, options = {}) {
     self.items = getItemsAsArray();
 
     self.itemTotal = self.items.length;
+
+    self.hoverMagnitude = self.options.hoverMagnitude;
 
     if (self.itemTotal > 1) {
       self.isClosed = true;
@@ -211,8 +214,8 @@ function Baraja(container, options = {}) {
           angleAvailable = false;
         }
         let angle = parseFloat(matchAngle);
-        let x = Math.cos((angle + 90) * (Math.PI / 180)) * -70;
-        let y = Math.sin((angle + 90) * (Math.PI / 180)) * -70;
+        let x = Math.cos((angle + 90) * (Math.PI / 180)) * -1 * self.hoverMagnitude;
+        let y = Math.sin((angle + 90) * (Math.PI / 180)) * -1 * self.hoverMagnitude;
 
         let newTransform = item.style.transform.replace(
           /translate\(.*px\)/gm,
@@ -254,8 +257,8 @@ function Baraja(container, options = {}) {
       angleAvailable = false;
     }
     let angle = parseFloat(matchAngle);
-    let x = Math.cos((angle + 90) * (Math.PI / 180)) * -70;
-    let y = Math.sin((angle + 90) * (Math.PI / 180)) * -70;
+    let x = Math.cos((angle + 90) * (Math.PI / 180)) * -1 * self.hoverMagnitude;
+    let y = Math.sin((angle + 90) * (Math.PI / 180)) * -1 * self.hoverMagnitude;
 
     let newTransform = item.style.transform.replace(
       /translate\(.*px\)/gm,

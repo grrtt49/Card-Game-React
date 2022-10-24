@@ -6,22 +6,15 @@ import Game from './Game';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import Snackbar from '@mui/material/Snackbar';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import MuiAlert from '@mui/material/Alert';
-
-const Alert = React.forwardRef(function Alert(props, ref) {
-    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+import { SnackbarProvider, useSnackbar } from 'notistack';
 
 export default function Lobby () {
     const socket = useContext(SocketContext);
+    const { enqueueSnackbar } = useSnackbar();
 
     const [pageStatus, setPageStatus] = useState('start');
     const [nickname, setNickname] = useState('');
-    const [errorMessage, setErrorMessage] = useState("");
-    const [infoMessage, setInfoMessage] = useState("");
     const [isCreator, setIsCreator] = useState(false);
 
     const setWaitingScreen = useCallback(() => {
@@ -77,30 +70,14 @@ export default function Lobby () {
     };
 
     const handlePlayerError = (msg) => {
-		console.log("Player error: ", msg);
-        setErrorMessage(msg);
+        console.log("Player error: ", msg);
+        enqueueSnackbar(msg, {variant: "error"});
 	};
 
     const handlePlayerInfoMessage = (msg) => {
         console.log("Player info: ", msg);
-        setInfoMessage(msg);
+        enqueueSnackbar(msg, {variant: "info", autoHideDuration: 1000});
     }
-
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-
-        setErrorMessage("");
-    };
-
-    const handleInfoClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-
-        setInfoMessage("");
-    };
 
     const handleJoinedRequest = () => {
         setIsCreator(false);
@@ -113,29 +90,7 @@ export default function Lobby () {
         return () => {
             socket.off("player error", handlePlayerError);
         };
-    }, [socket, errorMessage, isCreator]);
-
-    const closeErrorIcon = (
-        <IconButton
-            size="small"
-            aria-label="close"
-            color="inherit"
-            onClick={handleClose}
-        >
-            <CloseIcon fontSize="small" />
-        </IconButton>
-    );
-
-    const closeInfoIcon = (
-        <IconButton
-            size="small"
-            aria-label="close"
-            color="inherit"
-            onClick={handleInfoClose}
-        >
-            <CloseIcon fontSize="small" />
-        </IconButton>
-    );
+    }, [socket, isCreator]);
 
     let page = null;
     if(pageStatus == 'start') {
@@ -170,32 +125,6 @@ export default function Lobby () {
     return (
         <div>
             {page}
-            <Snackbar
-                open={(errorMessage != "")}
-                autoHideDuration={6000}
-                onClose={handleClose}
-                action={closeErrorIcon}
-            >
-                <Alert 
-                    severity="error"
-                    onClose={handleClose}
-                >
-                    {errorMessage}
-                </Alert>
-            </Snackbar>
-            <Snackbar
-                open={(infoMessage != "")}
-                autoHideDuration={2000}
-                onClose={handleInfoClose}
-                action={closeInfoIcon}
-            >
-                <Alert 
-                    severity="info"
-                    onClose={handleInfoClose}
-                >
-                    {infoMessage}
-                </Alert>
-            </Snackbar>
         </div>
     );
 }

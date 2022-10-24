@@ -9,6 +9,8 @@ import { Stack, Chip, Badge } from '@mui/material';
 import GameOverScreen from './GameOverScreen';
 import Confetti from 'react-dom-confetti';
 import EastIcon from '@mui/icons-material/East';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 var spreadFan = {
 	direction: 'right',
@@ -39,6 +41,26 @@ export default function Game(props) {
 	});
 
 	const socket = useContext(SocketContext);
+
+	const theme = useTheme();
+  	const sm = useMediaQuery(theme.breakpoints.only('sm'));
+  	const md = useMediaQuery(theme.breakpoints.only('md'));
+  	const lg = useMediaQuery(theme.breakpoints.only('lg'));
+  	const xl = useMediaQuery(theme.breakpoints.only('xl'));
+
+	let hoverMagnitude = 30;
+	if(sm) {
+		hoverMagnitude = 40;
+	}
+	else if(md) {
+		hoverMagnitude = 55;
+	}
+	else if(lg) {
+		hoverMagnitude = 55;
+	}
+	else if(xl) {
+		hoverMagnitude = 60;
+	}
 
 	const changeCards = useCallback((cards) => {
 		setCards(cards);
@@ -195,12 +217,18 @@ export default function Game(props) {
 					<Baraja id='discard-pile' close={true}>
 						{getCardFromObj(nextCard, 100, false)}
 					</Baraja>
-					<Baraja fan={fan} selectedWild={getSelectedWildForBaraja()}>
+					<Baraja 
+						fan={fan} 
+						selectedWild={getSelectedWildForBaraja()} 
+						options={{
+							hoverMagnitude: hoverMagnitude
+						}}
+					>
 						{cardItems}
 					</Baraja>
 				</div>
 			</div>
-			<Stack justifyContent="center" alignItems="center" spacing={3}>
+			<Stack justifyContent="center" alignItems="center" spacing={3} sx={{marginBottom: "65px"}}>
 				{colorSelector}
 				<Button variant="contained" onClick={handleEndTurn}>End Turn</Button>
 			</Stack>

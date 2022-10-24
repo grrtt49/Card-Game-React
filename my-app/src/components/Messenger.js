@@ -12,6 +12,21 @@ import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
+import { styled } from '@mui/material/styles';
+
+const MessengerRoot = styled('div')(({ theme }) => ({
+    [theme.breakpoints.down('md')]: {
+      width: "100%",
+    },
+    [theme.breakpoints.up('md')]: {
+      width: "40%",
+      right: "5%",
+    },
+    [theme.breakpoints.up('lg')]: {
+      width: "30%",
+      right: "5%",
+    },
+}));
 
 export default function Messenger(props) {
 
@@ -94,8 +109,18 @@ export default function Messenger(props) {
     let showHideButton = (showChat ? <FaChevronDown /> : <FaChevronUp />);
 
     return (
-        <Box id='chat-container'>
-            <Stack direction="row" justifyContent="space-between" sx={{padding: "7px"}}>
+        <MessengerRoot 
+            sx={{
+                padding: "10px",
+                borderRadius: "10px",
+                backgroundColor: "rgba(40, 40, 40, 0.93)",
+                zIndex: 10000,
+                position: "fixed",
+                bottom: 0,
+                backdropFilter: "blur(5px)",
+            }}
+        >
+            <Stack direction="row" justifyContent="space-between" >
                 <Badge badgeContent={unreadNotifications} color="primary" overlap="circular">
                     <IconButton onClick={toggleShowChat}>
                         <NotificationsIcon color="action" />
@@ -105,30 +130,32 @@ export default function Messenger(props) {
                 <IconButton onClick={toggleShowChat}>
                     {showHideButton}
                 </IconButton>
-                
             </Stack>
+
             <Collapse in={showChat}>
-                <Scrollbars style={{ width: "100%", height: 300 }} ref={scrollbarRef}>
-                    {messageItems}
-                </Scrollbars>
-                <form id='chat-form' onSubmit={handleSendMessage}>
-                    <Stack sx={{width: "100%"}} direction="row" spacing={1}>
-                        <Box sx={{flexGrow: 1}}>
-                            <TextField sx={{width: "100%"}} value={messageInputText} onChange={handleChangeMessageInput}/>
-                        </Box>
-                        <LoadingButton 
-                            variant="contained" 
-                            endIcon={<SendIcon />}
-                            loading={loadingSend}
-                            loadingPosition="end"
-                            onClick={handleSendMessage}
-                        >
-                            Send
-                        </LoadingButton>
-                    </Stack>
-                </form>
+                <Stack>
+                    <Scrollbars style={{ width: "100%", height: "300px" }} ref={scrollbarRef}>
+                        {messageItems}
+                    </Scrollbars>
+                    <form id='chat-form' onSubmit={handleSendMessage}>
+                        <Stack sx={{width: "100%"}} direction="row" spacing={1}>
+                            <Box sx={{flexGrow: 1}}>
+                                <TextField sx={{width: "100%"}} value={messageInputText} onChange={handleChangeMessageInput}/>
+                            </Box>
+                            <LoadingButton 
+                                variant="contained" 
+                                endIcon={<SendIcon />}
+                                loading={loadingSend}
+                                loadingPosition="end"
+                                onClick={handleSendMessage}
+                            >
+                                Send
+                            </LoadingButton>
+                        </Stack>
+                    </form>
+                </Stack>
             </Collapse>
-		</Box>
+		</MessengerRoot>
     );
 
 }

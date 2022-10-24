@@ -4,7 +4,6 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
-import Tooltip from '@mui/material/Tooltip';
 
 export default function Waiting (props) {
     const socket = useContext(SocketContext);
@@ -57,8 +56,6 @@ export default function Waiting (props) {
             <Chip key={player.id} label={player.nickname} />
         );
     });
-
-    //TODO: disable start for non-creators with tooltip
 
     return (
         <Stack direction="column" spacing={3} alignItems="center">
