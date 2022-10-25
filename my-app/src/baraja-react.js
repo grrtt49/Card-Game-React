@@ -49,6 +49,9 @@ class BarajaJS extends React.Component {
       }
       this.baraja.setSelectedWild(this.props.selectedWild);
     }
+    else if(this.props.selectedWild == null && prevProps.selectedWild != null) {
+      this.baraja.unselectWild(prevProps.selectedWild);
+    }
 
     if (this.props.add !== prevProps.add) {
       this.baraja.add(this.props.add);

@@ -30,23 +30,31 @@ let darkTheme = createTheme({
   },
 });
 
+let zIndexTheme = createTheme({
+  zIndex: {
+    snackbar: 30000
+  }
+});
+
 darkTheme = responsiveFontSizes(darkTheme);
 
 function App() {
   return (
-    <SnackbarProvider autoHideDuration={5000}>
-      <ThemeProvider theme={darkTheme}>
-        <SocketContext.Provider value={socket}>
-          <CssBaseline>
-            {/* <PrimaryAppBar /> */}
-            <h1>Card Game</h1>
-            <div>
-              <Lobby />
-            </div>
-          </CssBaseline>
-        </SocketContext.Provider>
-      </ThemeProvider>
-    </SnackbarProvider>
+    <ThemeProvider theme={zIndexTheme}>
+      <SnackbarProvider autoHideDuration={5000}>
+        <ThemeProvider theme={darkTheme}>
+          <SocketContext.Provider value={socket}>
+            <CssBaseline>
+              {/* <PrimaryAppBar /> */}
+              <h1>Card Game</h1>
+              <div>
+                <Lobby />
+              </div>
+            </CssBaseline>
+          </SocketContext.Provider>
+        </ThemeProvider>
+      </SnackbarProvider>
+    </ThemeProvider>
   );
 }
 

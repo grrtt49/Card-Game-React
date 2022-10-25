@@ -90,13 +90,10 @@ class Cards {
 	}
 
 	drawCardForPlayer(playerIndex) {
+		let keys = Object.keys(this.hands[playerIndex]).sort().reverse();
 		let index = 0;
-		let done = false;
-		while(!done) {
-			index++;
-			if(!this.hands[playerIndex].hasOwnProperty(index)) {
-				done = true;
-			}
+		if(keys.length > 0) {
+			index = keys[0] + 1;
 		}
 		this.hands[playerIndex][index] = this.getNextCard();
 	}

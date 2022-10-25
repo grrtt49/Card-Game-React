@@ -176,32 +176,24 @@ ul.baraja-container li.card-color-yellow, .bg-yellow {
 }
 
 .quarter-circle-bottom-right {
-  width: 100px;
-  height: 100px;
   border-radius: 0 0 100px 0;
   -moz-border-radius: 0 0 100px 0;
   -webkit-border-radius: 0 0 100px 0;
 }
 
 .quarter-circle-bottom-left {
-  width: 100px;
-  height: 100px;
   border-radius: 0 0 0 100px;
   -moz-border-radius: 0 0 0 100px;
   -webkit-border-radius: 0 0 0 100px;
 }
 
 .quarter-circle-top-right {
-  width: 100px;
-  height: 100px;
   border-radius: 0 100px 0 0;
   -moz-border-radius: 0 100px 0 0;
   -webkit-border-radius: 0 100px 0 0;
 }
 
 .quarter-circle-top-left {
-  width: 100px;
-  height: 100px;
   border-radius: 100px 0 0 0;
   -moz-border-radius: 100px 0 0 0;
   -webkit-border-radius: 100px 0 0 0;
@@ -209,6 +201,8 @@ ul.baraja-container li.card-color-yellow, .bg-yellow {
 
 .quarter-circle {
   cursor: pointer;
+  width: 100px;
+  height: 100px;
   transition: transform 0.2s;
   transition: box-shadow 0.2s;
 }

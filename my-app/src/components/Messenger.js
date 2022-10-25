@@ -34,7 +34,7 @@ export default function Messenger(props) {
 
     const scrollbarRef = useRef();
 
-    const [showChat, setShowChat] = useState(true);
+    const [showChat, setShowChat] = useState(false);
     const [messageInputText, setMessageInputText] = useState('');
 	const [messages, setMessages] = useState([]);
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);

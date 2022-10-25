@@ -10,6 +10,7 @@ import GameOverScreen from './GameOverScreen';
 import Confetti from 'react-dom-confetti';
 import EastIcon from '@mui/icons-material/East';
 import { useTheme } from '@mui/material/styles';
+import Box from '@mui/material/Box';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 var spreadFan = {
@@ -232,6 +233,7 @@ export default function Game(props) {
 				{colorSelector}
 				<Button variant="contained" onClick={handleEndTurn}>End Turn</Button>
 			</Stack>
+			<Box height="50px"></Box>
 
 			<Messenger />
 			<GameOverScreen isOpen={showGameOver} onClose={()=>setShowGameOver(false)} onBackToHome={handleBackToHome} gameData={gameOverData}/>
