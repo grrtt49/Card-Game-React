@@ -38,14 +38,24 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('set nickname', (name, callback) => {
+		let success = true;
 		if(name != "") {
 			player.nickname = name;
 		}
 		else {
 			io.to(player.socket.id).emit("player error", "Please enter a nickname");
+			success = false;
 		}
-		console.log("set nickname success? ", (name != "" ? "true" : "false"));
-		callback(name != "");
+		if(success && name.length > 20) {
+			io.to(player.socket.id).emit("player error", "Your nickname must be less than 20 characters");
+			success = false;
+		}
+		if(success && !/^\w+$/.test(name)) {
+			io.to(player.socket.id).emit("player error", "Your nickname can only include alphabet, number, and underscore characters");
+			success = false;
+		}
+		console.log("set nickname success? ", (success ? "true" : "false"));
+		callback(success);
 	});
 
 	socket.on('create request', (callback) => {
