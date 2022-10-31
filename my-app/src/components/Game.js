@@ -123,10 +123,43 @@ export default function Game(props) {
 		console.log("NaN :( ", selectedWild);
 	}
 
+	const compareCardObjects = (a, b) => {
+		console.log("Comparing: ", a, " with: ", b);
+		if(a.color < b.color) {
+			return -1;
+		}
+		if(a.color > b.color) {
+			return 1;
+		}
+		if(typeof a.number == "string" && typeof b.number != "string") {
+			return -1;
+		}
+		if(typeof a.number != "string" && typeof b.number == "string") {
+			return 1;
+		}
+		if(a.number > b.number) {
+			return -1;
+		}
+		if(a.number < b.number) {
+			return 1;
+		}
+		return 0;
+	};
+
+	const getCardArray = (cards) => {
+		let array = [];
+		Object.keys(cards).forEach((index) => {
+			array.push(cards[index]);
+		});
+		return array;
+	}
+
 	const getCardIndexFromID = (findCardId) => {
+		let cardsArray = getCardArray(cards);
+		let sortedCards = [...cardsArray].sort(compareCardObjects);
 		let cardIndex = null;
 		let i = 0;
-		Object.keys(cards).every((cardId) => {
+		Object.keys(sortedCards).every((cardId) => {
 			if(cardId == findCardId) {
 				cardIndex = i;
 				return false;
@@ -160,11 +193,35 @@ export default function Game(props) {
 		};
 	}, [socket, gameOverData, showGameOver]);
 
+	const compareCards = (a, b) => {
+		console.log("Comparing: ", a, " with: ", b);
+		if(a.props.color < b.props.color) {
+			return -1;
+		}
+		if(a.props.color > b.props.color) {
+			return 1;
+		}
+		if(typeof a.props.number == "string" && typeof b.props.number != "string") {
+			return -1;
+		}
+		if(typeof a.props.number != "string" && typeof b.props.number == "string") {
+			return 1;
+		}
+		if(a.props.number > b.props.number) {
+			return -1;
+		}
+		if(a.props.number < b.props.number) {
+			return 1;
+		}
+		return 0;
+	};
+
 	let cardItems = [];
 	Object.keys(cards).forEach((index) => {
 		let card = cards[index];
 		cardItems.push(getCardFromObj(card, index));
 	});
+	cardItems.sort(compareCards);
 
 	let colorSelector = (showColorSelector ? <ColorSelector colorSelected={(color)=>handleColorClicked(color)} /> : ""); //showColorSelector
 
