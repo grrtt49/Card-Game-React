@@ -4,6 +4,10 @@ import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {SocketContext} from '../context/socket';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import GradeIcon from '@mui/icons-material/Grade';
+import SquareIcon from '@mui/icons-material/Square';
+import CircleIcon from '@mui/icons-material/Circle';
 
 export default function Card (props) {
 
@@ -47,14 +51,39 @@ export default function Card (props) {
 			break;
 	}
 
+	let colorText = props.color;
+	switch (colorText) {
+		case "red":
+			colorText = <FavoriteIcon />;
+			break;
+		case "blue":
+			colorText = <GradeIcon />;
+			break;
+		case "green":
+			colorText = <SquareIcon />;
+			break;
+		case "yellow":
+			colorText = <CircleIcon />;
+			break;
+		default:
+			colorText = "";
+	}
+
 	return (
 		<li onClick={cardClicked} className={'card card-color-' + props.color + (props.selectedWild == props.cardID ? " selected-wild" : "")}>
 			<div className='card-content'>
-				<Typography 
-					variant='h5'
-				>
-					{text}
-				</Typography>
+				<div>
+					<Typography 
+						variant='h5'
+					>
+						{text}
+					</Typography>
+					<Typography 
+						variant='h5'
+					>
+						{props.colorblind ? colorText : ""}
+					</Typography>
+				</div>
 				<Typography 
 					variant='h5'
 					sx={{

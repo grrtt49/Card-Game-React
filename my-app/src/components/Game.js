@@ -12,6 +12,7 @@ import EastIcon from '@mui/icons-material/East';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 var spreadFan = {
 	direction: 'right',
@@ -83,6 +84,7 @@ export default function Game(props) {
 				setShowColorSelector={setShowColorSelector}
 				setSelectedWild={setSelectedWild} 
 				selectedWild={selectedWild} 
+				colorblind={props.colorblindMode}
 			/>
 		);
 	}

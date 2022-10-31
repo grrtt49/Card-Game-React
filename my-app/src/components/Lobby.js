@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField';
 import MuiAlert from '@mui/material/Alert';
 import { SnackbarProvider, useSnackbar } from 'notistack';
 
-export default function Lobby () {
+export default function Lobby (props) {
     const socket = useContext(SocketContext);
     const { enqueueSnackbar } = useSnackbar();
 
@@ -118,7 +118,7 @@ export default function Lobby () {
     }
     else {
         page = (
-            <Game handlePlayerInfoMessage={handlePlayerInfoMessage} backToHome={setStartScreen} />
+            <Game handlePlayerInfoMessage={handlePlayerInfoMessage} backToHome={setStartScreen} colorblindMode={props.colorblindMode} />
         );
     }
     
