@@ -34,87 +34,162 @@ io.on('connection', (socket) => {
 	var player = new Player(socket);
 
 	socket.on('get available requests', (callback) => {
-		callback(lobby.getActiveRequests());
+		try {
+			callback(lobby.getActiveRequests());
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('set nickname', (name, callback) => {
-		let success = true;
-		if(name != "") {
-			player.nickname = name;
+		try {
+			let success = true;
+			if(name != "") {
+				player.nickname = name;
+			}
+			else {
+				io.to(player.socket.id).emit("player error", "Please enter a nickname");
+				success = false;
+			}
+			if(success && name.length > 20) {
+				io.to(player.socket.id).emit("player error", "Your nickname must be less than 20 characters");
+				success = false;
+			}
+			if(success && !/^\w+$/.test(name)) {
+				io.to(player.socket.id).emit("player error", "Your nickname can only include alphabet, number, and underscore characters");
+				success = false;
+			}
+			console.log("set nickname success? ", (success ? "true" : "false"));
+			callback(success);
 		}
-		else {
-			io.to(player.socket.id).emit("player error", "Please enter a nickname");
-			success = false;
+		catch (err) {
+			handleError(err, player);
 		}
-		if(success && name.length > 20) {
-			io.to(player.socket.id).emit("player error", "Your nickname must be less than 20 characters");
-			success = false;
-		}
-		if(success && !/^\w+$/.test(name)) {
-			io.to(player.socket.id).emit("player error", "Your nickname can only include alphabet, number, and underscore characters");
-			success = false;
-		}
-		console.log("set nickname success? ", (success ? "true" : "false"));
-		callback(success);
 	});
 
 	socket.on('create request', (callback) => {
-		let request = lobby.createRequestForPlayer(io, player);
-		callback(request);
+		try {
+			let request = lobby.createRequestForPlayer(io, player);
+			callback(request);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('get current request', () => {
-		io.emit('updated request', lobby.getRequest(player.currentRequestID));
+		try {
+			io.emit('updated request', lobby.getRequest(player.currentRequestID));
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('join request', (requestID) => {
-		lobby.joinRequestFromPlayer(io, player, requestID);
+		try {
+			lobby.joinRequestFromPlayer(io, player, requestID);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('remove current request', () => {
-		lobby.removeCurrentRequest(io, player);
+		try {
+			lobby.removeCurrentRequest(io, player);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('start game', () => {
-		lobby.startGame(io, player);
+		try {
+			lobby.startGame(io, player);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('get game data', () => {
-		lobby.getGameData(io, player);
+		try {
+			lobby.getGameData(io, player);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('try playing card', (cardID, color="") => {
-		let success = lobby.tryPlayingCard(io, player, cardID, color);
+		try {
+			let success = lobby.tryPlayingCard(io, player, cardID, color);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('end turn', () => {
-		lobby.endTurn(io, player);
+		try {
+			lobby.endTurn(io, player);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('send message', (message) => {
-		lobby.sendMessage(io, player, message);
+		try {
+			lobby.sendMessage(io, player, message);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 	});
 
 	socket.on('left current game', () => {
-		if(player.currentRequestID != null) {
-			lobby.removeCurrentRequest(io, player);
-		}
+		try {
+			if(player.currentRequestID != null) {
+				lobby.removeCurrentRequest(io, player);
+			}
 
-		if(player.currentGameID != null) {
-			lobby.removePlayerFromGame(io, player);
+			if(player.currentGameID != null) {
+				lobby.removePlayerFromGame(io, player);
+			}
+		}
+		catch (err) {
+			handleError(err, player);
 		}
 	});
 
 	socket.on('disconnect', function() {
-		console.log('Player disconnected');
+		try {
+			socket.emit("error", "test");
 
-		if(player.currentRequestID != null) {
-			lobby.removeCurrentRequest(io, player);
-		}
+			if(player.currentRequestID != null) {
+				lobby.removeCurrentRequest(io, player);
+			}
 
-		if(player.currentGameID != null) {
-			lobby.removePlayerFromGame(io, player);
+			if(player.currentGameID != null) {
+				lobby.removePlayerFromGame(io, player);
+			}
 		}
-	 });
+		catch (err) {
+			handleError(err, player);
+		}
+	});
 });
+
+function handleError(err, player) {
+	console.log("Handling error: ", err);
+	try {
+		io.to(player.socket.id).emit("player error", "An unknown server error occurred.");
+	}
+	catch (err2) {
+		console.log("Couldn't send error message: ", err2);
+	}
+}
 
