@@ -126,7 +126,7 @@ export default function Game(props) {
 	}
 
 	const compareCardObjects = (a, b) => {
-		console.log("Comparing: ", a, " with: ", b);
+		// console.log("Comparing: ", a, " with: ", b);
 		if(a.color < b.color) {
 			return -1;
 		}
@@ -151,20 +151,24 @@ export default function Game(props) {
 	const getCardArray = (cards) => {
 		let array = [];
 		Object.keys(cards).forEach((index) => {
+			cards[index].cardID = index;
 			array.push(cards[index]);
 		});
 		return array;
 	}
 
 	const getCardIndexFromID = (findCardId) => {
+		console.log("Getting card from id: ", findCardId);
 		let cardsArray = getCardArray(cards);
 		let sortedCards = [...cardsArray].sort(compareCardObjects);
 		let cardIndex = null;
 		let i = 0;
-		Object.keys(sortedCards).every((cardId) => {
-			if(cardId == findCardId) {
+		console.log("Sorted cards: ", sortedCards);
+		sortedCards.every((card) => {
+			console.log("Checking: ", card.cardID);
+			if(card.cardID == findCardId) {
 				cardIndex = i;
-				return false;
+				return false; 
 			}
 			i++;
 			return true;
