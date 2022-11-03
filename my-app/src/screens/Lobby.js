@@ -1,13 +1,12 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {SocketContext} from '../context/socket';
-import JoinableGames from './JoinableRequests';
-import Waiting from './Waiting';
-import Game from './Game';
+import JoinableGames from './join-screen/JoinableRequests';
+import Waiting from './create-screen/Waiting';
+import Game from './game-screen/Game';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import MuiAlert from '@mui/material/Alert';
-import { SnackbarProvider, useSnackbar } from 'notistack';
+import { useSnackbar } from 'notistack';
 
 export default function Lobby (props) {
     const socket = useContext(SocketContext);

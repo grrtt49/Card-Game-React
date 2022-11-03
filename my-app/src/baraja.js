@@ -248,7 +248,10 @@ function Baraja(container, options = {}) {
   }
 
   function setSelectedWild(i) {
+    console.log("Setting selected wild: ", i);
     let item = self.items[i];
+    console.log("Selected wild item: ", item, " from ", self.items);
+
 
     let angleAvailable = true;
     let matchAngle = /-?\d*\.?\d*deg/gm.exec(item.style.transform);

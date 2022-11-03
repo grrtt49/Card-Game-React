@@ -1,6 +1,6 @@
 import './App.css';
 import {SocketContext, socket} from './context/socket';
-import Lobby from './components/Lobby';
+import Lobby from './screens/Lobby.js';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import '@fontsource/roboto/300.css';
@@ -8,7 +8,7 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { SnackbarProvider } from 'notistack'
-import PrimaryAppBar from './components/PrimaryAppBar';
+import PrimaryAppBar from './screens/PrimaryAppBar';
 import { useState } from 'react';
 
 let darkTheme = createTheme({

@@ -1,6 +1,6 @@
-import React, {useState, useContext, useCallback, useEffect, useRef} from 'react';
-import {SocketContext, socket} from '../context/socket';
-import { FaPaperPlane, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import React, {useState, useContext, useEffect, useRef} from 'react';
+import {SocketContext} from '../../context/socket';
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Message from './Message';
 import { Scrollbars } from 'react-custom-scrollbars-2';
 import Collapse from '@mui/material/Collapse';

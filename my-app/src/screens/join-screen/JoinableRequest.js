@@ -1,5 +1,5 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react';
-import {SocketContext} from '../context/socket';
+import {SocketContext} from '../../context/socket';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useEffect } from 'react';
-import { SocketContext } from '../context/socket';
+import { SocketContext } from '../../context/socket';
 import Card from './Card';
-import Baraja from '../baraja-react';
+import Baraja from '../../baraja-react';
 import ColorSelector from './ColorSelector';
 import Messenger from './Messenger';
 import Button from '@mui/material/Button';
@@ -196,7 +196,6 @@ export default function Game(props) {
 	}, [socket, gameOverData, showGameOver]);
 
 	const compareCards = (a, b) => {
-		console.log("Comparing: ", a, " with: ", b);
 		if(a.props.color < b.props.color) {
 			return -1;
 		}

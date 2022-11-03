@@ -1,7 +1,7 @@
 
 import { Typography } from '@mui/material';
 import React, {useState, useContext, useCallback, useEffect} from 'react';
-import {SocketContext} from '../context/socket';
+import {SocketContext} from '../../context/socket';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import FavoriteIcon from '@mui/icons-material/Favorite';
