@@ -47,7 +47,7 @@ export default function JoinableRequests (props) {
                 {requestHTML}
                 {requestHTML.length == 0 ? 
                     <Stack direction="column" alignItems="center" spacing={3}>
-                        <CircularProgress />
+                        <CircularProgress thickness={4} size={70} />
                         <Box>No current games. Please create one or wait for one to appear here.</Box> 
                     </Stack>
                 : ""}
