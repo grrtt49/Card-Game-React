@@ -228,7 +228,7 @@ export default function Game(props) {
 	});
 	cardItems.sort(compareCards);
 
-	let colorSelector = (showColorSelector ? <ColorSelector colorSelected={(color)=>handleColorClicked(color)} /> : ""); //showColorSelector
+	let colorSelector = (showColorSelector ? <ColorSelector colorSelected={(color)=>handleColorClicked(color)} colorblind={props.colorblindMode} /> : ""); //showColorSelector
 
 	let playerChips = [];
 	playerTurnData.forEach((player, index) => {
