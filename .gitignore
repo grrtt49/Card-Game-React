@@ -10,7 +10,7 @@ my-app/.pnp.js
 /my-app/coverage
 
 # production
-/my-app/build
+# /my-app/build
 
 # misc
 my-app/.DS_Store
