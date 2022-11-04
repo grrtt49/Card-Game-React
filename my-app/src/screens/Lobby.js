@@ -10,7 +10,7 @@ import { useSnackbar } from 'notistack';
 
 export default function Lobby (props) {
     const socket = useContext(SocketContext);
-    const { enqueueSnackbar } = useSnackbar();
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     const [pageStatus, setPageStatus] = useState('start');
     const [nickname, setNickname] = useState('');
@@ -73,21 +73,39 @@ export default function Lobby (props) {
         enqueueSnackbar(msg, {variant: "error"});
 	};
 
+    const handleSocketErrors = (err) => {
+        console.log("Socket error: ", err);
+        enqueueSnackbar("No connection", {persist: true, variant: "error", preventDuplicate: true});
+    };
+
+    const handleCloseErrors = () => {
+        closeSnackbar();
+        enqueueSnackbar("Connected!", {variant: "success", autoHideDuration: 2000});
+    };
+
     const handlePlayerInfoMessage = (msg) => {
         console.log("Player info: ", msg);
         enqueueSnackbar(msg, {variant: "info", autoHideDuration: 1000});
-    }
+    };
 
     const handleJoinedRequest = () => {
         setIsCreator(false);
         setWaitingScreen();
-    }
+    };
 
     useEffect(() => {
         socket.on('player error', handlePlayerError);
+        socket.on('connect_error', err => handleSocketErrors(err));
+        socket.on('connect_failed', err => handleSocketErrors(err));
+        socket.on('disconnect', err => handleSocketErrors(err));
+        socket.on('connect', handleCloseErrors);
 
         return () => {
             socket.off("player error", handlePlayerError);
+            socket.off('connect_error', err => handleSocketErrors(err));
+            socket.off('connect_failed', err => handleSocketErrors(err));
+            socket.off('disconnect', err => handleSocketErrors(err));
+            socket.off('connect', handleCloseErrors);
         };
     }, [socket, isCreator]);
 
