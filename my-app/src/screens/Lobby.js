@@ -7,14 +7,15 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { useSnackbar } from 'notistack';
+import { useLocalStorage } from '../useLocalStorage';
 
 export default function Lobby (props) {
     const socket = useContext(SocketContext);
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     const [pageStatus, setPageStatus] = useState('start');
-    const [nickname, setNickname] = useState('');
     const [isCreator, setIsCreator] = useState(false);
+    const [user, setUser] = useLocalStorage("user", null);
 
     const setWaitingScreen = useCallback(() => {
         setPageStatus('waiting');
@@ -37,34 +38,17 @@ export default function Lobby (props) {
         setGameScreen();
     };
 
-    const handleNickname = (event) => {
-        setNickname(event.target.value);
-
-        console.log("nickname: ", event.target.value);
-    };
-
-    const handleCreateRequest = () => {
-        socket.emit('set nickname', nickname, socketCreateRequest);
-    };
-
-    const socketCreateRequest = (success) => {
-        if(!success) return; //failed
-        socket.emit('create request', createCallback);
-    };
-
     const createCallback = (request) => {
         if (request === false) return; //failed
         setIsCreator(true);
         setWaitingScreen();
     }
 
-    const handleJoinRequest = () => {
-        socket.emit('set nickname', nickname, socketJoinRequest);
+    const handleCreateRequest = () => {
+        socket.emit('create request', user);
     };
 
-    const socketJoinRequest = (success) => {
-        console.log("Nickname worked? ", (success ? "true" : "false"));
-        if(!success) return; //failed
+    const handleJoinRequest = () => {
         setJoinScreen();
     };
 
@@ -93,19 +77,27 @@ export default function Lobby (props) {
         setWaitingScreen();
     };
 
+    const handleUsers = (users) => {
+        console.log(users);
+    };
+
     useEffect(() => {
+        socket.on('created request', createCallback);
         socket.on('player error', handlePlayerError);
         socket.on('connect_error', err => handleSocketErrors(err));
         socket.on('connect_failed', err => handleSocketErrors(err));
         socket.on('disconnect', err => handleSocketErrors(err));
         socket.on('connect', handleCloseErrors);
+        socket.on('users', handleUsers);
 
         return () => {
+            socket.off('created request', createCallback);
             socket.off("player error", handlePlayerError);
             socket.off('connect_error', err => handleSocketErrors(err));
             socket.off('connect_failed', err => handleSocketErrors(err));
             socket.off('disconnect', err => handleSocketErrors(err));
             socket.off('connect', handleCloseErrors);
+            socket.off('users', handleUsers);
         };
     }, [socket, isCreator]);
 
@@ -113,9 +105,6 @@ export default function Lobby (props) {
     if(pageStatus == 'start') {
         page = (
             <Stack direction="column" spacing={3}>
-                <Stack direction="row" justifyContent="center">
-                    <TextField id="outlined-basic" color="white" label="Nickname (required)" variant="outlined" onChange={(event) => handleNickname(event)} value={nickname} />
-                </Stack>
                 <Stack spacing={2} direction="row" justifyContent="center">
                     <Button variant="contained"  sx={{width: 150}} onClick={() => handleCreateRequest()}>Create Game</Button>
                     <Button variant="contained"  sx={{width: 150}} onClick={() => handleJoinRequest()}>Join Game</Button>
@@ -125,12 +114,12 @@ export default function Lobby (props) {
     }
     else if(pageStatus == 'join') {
         page = (
-            <JoinableGames backToStart={setStartScreen} goToWaiting={handleJoinedRequest} />
+            <JoinableGames user={user} backToStart={setStartScreen} goToWaiting={handleJoinedRequest} />
         );
     }
     else if(pageStatus == 'waiting') {
         page = (
-            <Waiting backToStart={setStartScreen} handleStartGame={handleStartGame} isCreator={isCreator}/>
+            <Waiting user={user} backToStart={setStartScreen} handleStartGame={handleStartGame} isCreator={isCreator}/>
         );
     }
     else {

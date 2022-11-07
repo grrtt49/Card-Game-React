@@ -11,6 +11,7 @@ export default function Waiting (props) {
     const [players, setPlayers] = useState([]);
 
     const handleJoinedPlayers = useCallback((request) => {
+        console.log("Players: ", request);
         let joinedPlayers = request.players;
         console.log("Joined players: ", joinedPlayers);
         setPlayers(joinedPlayers);
@@ -36,7 +37,7 @@ export default function Waiting (props) {
 
     useEffect(() => {
         //get updated
-        socket.emit("get current request");
+        socket.emit("get current request", props.user);
 
         //subscribe to socket events
         socket.on("updated request", handleJoinedPlayers);

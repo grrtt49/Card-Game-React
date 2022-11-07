@@ -2,46 +2,38 @@ const Cards = require('./Cards');
 const Player = require('./Player');
 
 class Game {
-	cards;
-	currentTurn;
-	players;
-	numPlayers;
+	game;
 
 	/**
 	 * 
-	 * @param {[Player]} players 
+	 * @param {*} game 
 	 */
-	constructor(players) {
-		this.cards = new Cards();
-		this.cards.startGame(players);
-		this.players = players;
-		this.numPlayers = players.length;
-		this.currentTurn = 0;
-		this.isReversed = false;
+	constructor(game) {
+		this.game = game;
 	}
 
 	takeTurn(playerIndex, cardIndex, color) {
-		if (playerIndex != this.currentTurn) {
+		if (playerIndex != this.game.currentTurn) {
 			console.log("Not your turn");
 			return {success: false, msg: "It is not your turn"};
 		}
 
-		let playedCard = this.cards.playCardFromPlayer(playerIndex, cardIndex, color);
+		let playedCard = this.game.cards.playCardFromPlayer(playerIndex, cardIndex, color);
 		if (!playedCard.success) {
 			return playedCard;
 		}
 
 		if(playedCard.playedCard.number == "skip") {
-			this.nextTurn();
+			this.game.nextTurn();
 		}
 		else if(playedCard.playedCard.number == "reverse") {
-			this.isReversed = !this.isReversed;
+			this.game.isReversed = !this.game.isReversed;
 		}
 
 		if(playedCard.playedCard.drawAmount != null) {
 			this.nextTurn();
 			for (let i = 0; i < playedCard.playedCard.drawAmount; i++) {
-				this.cards.drawCardForPlayer(this.currentTurn);
+				this.game.cards.drawCardForPlayer(this.game.currentTurn);
 			}
 		}
 
@@ -54,40 +46,41 @@ class Game {
 			console.log("Not your turn");
 			return false;
 		}
-		this.cards.drawCardForPlayer(playerIndex);
+		this.game.cards.drawCardForPlayer(playerIndex);
 		this.nextTurn();
 	}
 
-	nextTurn() {
-		this.currentTurn = (this.currentTurn + (!this.isReversed ? 1 : (this.numPlayers - 1))) % this.numPlayers;
+	async nextTurn() {
+		this.game.currentTurn = (this.game.currentTurn + (!this.game.isReversed ? 1 : (this.game.numPlayers - 1))) % this.game.numPlayers;
+		await this.saveGame();
 	}
 
 	sendDataToPlayers(io, message = "game data") {
 		let playerTurnData = [];
-		for (let i = 0; i < this.players.length; i++) {
+		for (let i = 0; i < this.game.players.length; i++) {
 			playerTurnData.push({
-				name: this.players[i].nickname,
-				isCurrent: this.currentTurn == i,
-				numCards: Object.keys(this.cards.hands[i]).length,
+				name: this.game.players[i].getNickname(),
+				isCurrent: this.game.currentTurn == i,
+				numCards: Object.keys(this.game.cards.hands[i]).length,
 			}); 
 		}
 
-		for (let i = 0; i < this.players.length; i++) {
+		for (let i = 0; i < this.game.players.length; i++) {
 			let data = {
-				playerCards: this.cards.hands[i],
-				currentTurn: this.currentTurn,
-				topCard: this.cards.getTopCard(),
+				playerCards: this.game.cards.hands[i],
+				currentTurn: this.game.currentTurn,
+				topCard: this.game.cards.getTopCard(),
 				playerTurnData: playerTurnData,
-				isTurn: this.currentTurn == i,
-				isReversed: this.isReversed,
+				isTurn: this.game.currentTurn == i,
+				isReversed: this.game.isReversed,
 			};
-			io.to(this.players[i].socket.id).emit(message, data);
+			io.to(this.game.players[i].socket.id).emit(message, data);
 		}
 	}
 
 	isGameOver() {
-		for(let i = 0; i < this.cards.hands.length; i++) {
-			if(Object.keys(this.cards.hands[i]).length <= 0) {
+		for(let i = 0; i < this.game.cards.hands.length; i++) {
+			if(Object.keys(this.game.cards.hands[i]).length <= 0) {
 				return true;
 			}
 		}
@@ -96,62 +89,63 @@ class Game {
 
 	sendGameOverToPlayers(io) {
 		let playerTurnData = [];
-		for (let i = 0; i < this.players.length; i++) {
+		for (let i = 0; i < this.game.players.length; i++) {
 			playerTurnData.push({
-				name: this.players[i].nickname,
-				numCards: Object.keys(this.cards.hands[i]).length,
+				name: this.game.players[i].getNickname(),
+				numCards: Object.keys(this.game.cards.hands[i]).length,
 			});
 		}
 
-		for (let i = 0; i < this.players.length; i++) {
+		for (let i = 0; i < this.game.players.length; i++) {
 			let data = {
-				won: Object.keys(this.cards.hands[i]).length == 0,
+				won: Object.keys(this.game.cards.hands[i]).length == 0,
 				players: playerTurnData,
 			};
 
-			io.to(this.players[i].socket.id).emit("game over", data);
+			io.to(this.game.players[i].socket.id).emit("game over", data);
 		}
 	}
 
-	resetPlayersRequestId() {
-		for (let i = 0; i < this.players.length; i++) {
-			this.players[i].currentRequestID = null;
+	async resetPlayersRequestId() {
+		for (let i = 0; i < this.game.players.length; i++) {
+			this.game.players[i].user.currentRequestID = null;
+			await this.saveUser(this.game.players[i].user);
 		}
 	}
 
 	getPlayerGameData(playerID) {
 		let playerTurnData = [];
-		for (let i = 0; i < this.players.length; i++) {
+		for (let i = 0; i < this.game.players.length; i++) {
 			playerTurnData.push({
-				name: this.players[i].nickname,
-				isCurrent: this.currentTurn == i,
-				numCards: Object.keys(this.cards.hands[i]).length,
+				name: this.game.players[i].getNickname(),
+				isCurrent: this.game.currentTurn == i,
+				numCards: Object.keys(this.game.cards.hands[i]).length,
 			});
 		}
 
 		return {
-			playerCards: this.cards.hands[playerID],
-			currentTurn: this.currentTurn,
-			topCard: this.cards.getTopCard(),
+			playerCards: this.game.cards.hands[playerID],
+			currentTurn: this.game.currentTurn,
+			topCard: this.game.cards.getTopCard(),
 			playerTurnData: playerTurnData,
-			isTurn: this.currentTurn == playerID,
-			isReversed: this.isReversed,
+			isTurn: this.game.currentTurn == playerID,
+			isReversed: this.game.isReversed,
 		};
 	}
 
 	sendMessageToPlayers(io, player, text) {
-		for (let i = 0; i < this.players.length; i++) {
+		for (let i = 0; i < this.game.players.length; i++) {
 			let fromSelf = false;
-			if(this.players[i].id == player.id) {
+			if(this.game.players[i].id == player.id()) {
 				fromSelf = true;
 			}
 
 			let message = {
 				text: text,
-				from: player.nickname,
+				from: player.getNickname(),
 				fromSelf: fromSelf,
 			};
-			io.to(this.players[i].socket.id).emit("new message", message);
+			io.to(this.game.players[i].socket.id).emit("new message", message);
 			console.log("Sent message: ", message);
 		}
 	}
@@ -160,21 +154,45 @@ class Game {
 	 * 
 	 * @param {Player} player 
 	 */
-	removePlayer(player) {
-		for (let i = 0; i < this.players.length; i++) {
-			if(player.id == this.players[i].id) {
-				this.players[i].currentGameID = null;
-				this.players.splice(i, 1);
+	async removePlayer(player) {
+		for (let i = 0; i < this.game.players.length; i++) {
+			if(player.id() == this.game.players[i].id) {
+				this.game.players[i].user.currentGameID = null;
+				await this.saveUser(this.game.players[i].user);
+				this.game.players.splice(i, 1);
+				await this.saveGame();
 				break;
 			}
 		}
 	}
 
-	removeAllPlayers() {
-		for (let i = 0; i < this.players.length; i++) {
-			this.players[i].currentGameID = null;
+	async removeAllPlayers() {
+		for (let i = 0; i < this.game.players.length; i++) {
+				await this.mongooseController.updateUser(this.game.players[i].user, "currentGameID", null);
 		}
-		this.players = [];
+		this.game.players = [];
+		await this.saveGame();
+	}
+
+	async saveUser(user) {
+		try {
+			user.save();
+		}
+		catch (err) {
+			console.log("Save user error: ", err);
+		}
+	}
+
+	async saveGame() {
+		try {
+			await this.game.save();
+			return true;
+		}
+		catch (err) {
+			console.log("Update game error: ", err);
+			this.socket.emit('player error', "Server error, please try again.");
+			return false;
+		}
 	}
 }
 

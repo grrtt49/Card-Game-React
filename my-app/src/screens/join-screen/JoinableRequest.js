@@ -7,7 +7,7 @@ export default function JoinableRequest (props) {
     const socket = useContext(SocketContext);
 
     const joinGame = (id) => {
-        socket.emit("join request", id);
+        socket.emit("join request", id, props.user);
         props.goToWaiting();
     } 
 

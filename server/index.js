@@ -1,11 +1,15 @@
 const Player = require('./Player.js');
 const LobbyController = require('./LobbyController');
+const MongooseController = require('./MongooseController');
 
 const http = require("http");
+const crypto = require("crypto");
 const express = require("express");
 const socketio = require("socket.io");
 const path = require("path");
 const cors = require("cors");
+const GameModel = require('./GameModel.js');
+const RequestModel = require('./RequestModel.js');
 
 const app = express();
 
@@ -27,87 +31,106 @@ httpserver.listen(3001, function() {
     console.log("Listening on port 3001");
 });
 
-let lobby = new LobbyController();
+const mongooseController = new MongooseController(io);
+const gameModel = new GameModel(io);
+const requestModel = new RequestModel(io);
+
+let lobby = new LobbyController(mongooseController, gameModel, requestModel);
 
 io.on('connection', (socket) => {
 	console.log("Player connected: ", socket.id);
-	var player = new Player(socket);
+	var player = null;
 
-	socket.on('get available requests', (callback) => {
+	socket.on('get available requests', async (callback) => {
 		try {
-			callback(lobby.getActiveRequests());
+			callback(await lobby.getActiveRequests());
 		}
 		catch (err) {
 			handleError(err, player);
 		}
 	});
 
-	socket.on('set nickname', (name, callback) => {
+
+	// let success = true;
+	// if(name != "") {
+	// 	player.nickname = name;
+	// }
+	// else {
+	// 	io.to(player.socket.id).emit("player error", "Please enter a nickname");
+	// 	success = false;
+	// }
+	// if(success && name.length > 20) {
+	// 	io.to(player.socket.id).emit("player error", "Your nickname must be less than 20 characters");
+	// 	success = false;
+	// }
+	// if(success && !/^\w+$/.test(name)) {
+	// 	io.to(player.socket.id).emit("player error", "Your nickname can only include alphabet, number, and underscore characters");
+	// 	success = false;
+	// }
+
+	socket.on('create request', async (userInfo) => {
 		try {
-			let success = true;
-			if(name != "") {
-				player.nickname = name;
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(!authUser) {
+				return;
 			}
 			else {
-				io.to(player.socket.id).emit("player error", "Please enter a nickname");
-				success = false;
+				player = authUser;
 			}
-			if(success && name.length > 20) {
-				io.to(player.socket.id).emit("player error", "Your nickname must be less than 20 characters");
-				success = false;
+			let request = await lobby.createRequestForPlayer(io, player);
+			io.to(player.socket.id).emit("created request", request);
+		}
+		catch (err) {
+			handleError(err, player);
+		}
+	});
+
+	socket.on('get current request', async (userInfo) => {
+		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(!authUser) {
+				return;
 			}
-			if(success && !/^\w+$/.test(name)) {
-				io.to(player.socket.id).emit("player error", "Your nickname can only include alphabet, number, and underscore characters");
-				success = false;
+			else {
+				player = authUser;
 			}
-			console.log("set nickname success? ", (success ? "true" : "false"));
-			callback(success);
+			const request = await lobby.getRequest(player.getCurrentRequestID());
+			console.log("CURRENT REQUEST: ", request);
+			io.emit('updated request', request);
 		}
 		catch (err) {
 			handleError(err, player);
 		}
 	});
 
-	socket.on('create request', (callback) => {
+	socket.on('join request', async (requestID, userInfo) => {
 		try {
-			let request = lobby.createRequestForPlayer(io, player);
-			callback(request);
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(!authUser) {
+				return;
+			}
+			else {
+				player = authUser;
+			}
+			await lobby.joinRequestFromPlayer(io, player, requestID);
 		}
 		catch (err) {
 			handleError(err, player);
 		}
 	});
 
-	socket.on('get current request', () => {
+	socket.on('remove current request', async () => {
 		try {
-			io.emit('updated request', lobby.getRequest(player.currentRequestID));
+			await lobby.removeCurrentRequest(io, player);
 		}
 		catch (err) {
 			handleError(err, player);
 		}
 	});
 
-	socket.on('join request', (requestID) => {
+	socket.on('start game', async () => {
 		try {
-			lobby.joinRequestFromPlayer(io, player, requestID);
-		}
-		catch (err) {
-			handleError(err, player);
-		}
-	});
-
-	socket.on('remove current request', () => {
-		try {
-			lobby.removeCurrentRequest(io, player);
-		}
-		catch (err) {
-			handleError(err, player);
-		}
-	});
-
-	socket.on('start game', () => {
-		try {
-			lobby.startGame(io, player);
+			await lobby.startGame(io, player);
 		}
 		catch (err) {
 			handleError(err, player);
@@ -150,14 +173,14 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('left current game', () => {
+	socket.on('left current game', async () => {
 		try {
 			if(player.currentRequestID != null) {
-				lobby.removeCurrentRequest(io, player);
+				await lobby.removeCurrentRequest(io, player);
 			}
 
 			if(player.currentGameID != null) {
-				lobby.removePlayerFromGame(io, player);
+				await lobby.removePlayerFromGame(io, player);
 			}
 		}
 		catch (err) {
@@ -165,19 +188,55 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('disconnect', function() {
+	socket.on('disconnect', async () => {
 		try {
 			socket.emit("error", "test");
 
 			if(player.currentRequestID != null) {
-				lobby.removeCurrentRequest(io, player);
+				await lobby.removeCurrentRequest(io, player);
 			}
 
 			if(player.currentGameID != null) {
-				lobby.removePlayerFromGame(io, player);
+				await lobby.removePlayerFromGame(io, player);
 			}
 		}
 		catch (err) {
+			handleError(err, player);
+		}
+	});
+
+	socket.on('get users', async () => {
+		console.log("Getting users");
+		try {
+			const users = await mongooseController.getUsers();
+			io.to(player.socket.id).emit('users', users);
+		}
+		catch(err) {
+			handleError(err, player);
+		}
+	});
+
+	socket.on('sign up', async (nickname, password) => {
+		console.log("Signing up");
+		try {
+			const success = await mongooseController.signUp(nickname, password, socket);
+			player = new Player(success.user, io);
+			io.to(player.socket.id).emit('signed up', success.client);
+		}
+		catch(err) {
+			handleError(err, player);
+		}
+	});
+
+	socket.on('sign in', async (nickname, password) => {
+		console.log("Signing in");
+		try {
+			const user = await mongooseController.signIn(nickname, password);
+			player = new Player(user);
+			// set socket
+			io.to(player.socket.id).emit('signed in', user);
+		}
+		catch(err) {
 			handleError(err, player);
 		}
 	});
@@ -193,3 +252,13 @@ function handleError(err, player) {
 	}
 }
 
+async function authenticate (userInfo, player, socket, io) {
+	//TODO: check token and nickname here too
+	if(player && player.user) return true;
+
+	let user = await mongooseController.getUserFromToken(userInfo);
+	user.socket = socket.id;
+	await mongooseController.saveUser(user);
+	console.log("Authenticated: ", user);
+	return new Player(user, io);
+}

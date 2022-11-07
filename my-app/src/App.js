@@ -10,6 +10,10 @@ import '@fontsource/roboto/700.css';
 import { SnackbarProvider } from 'notistack'
 import PrimaryAppBar from './screens/PrimaryAppBar';
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SignUp from './screens/SignUp';
+import SignIn from './screens/SignIn';
+import Layout from './Layout';
 
 let darkTheme = createTheme({
   palette: {
@@ -48,10 +52,15 @@ function App() {
         <ThemeProvider theme={darkTheme}>
           <SocketContext.Provider value={socket}>
             <CssBaseline>
-              <PrimaryAppBar colorblindMode={colorblindMode} setColorblindMode={setColorblindMode} />
-              <div style={{marginTop: "50px"}}>
-                <Lobby colorblindMode={colorblindMode}/>
-              </div>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindMode} />}>
+                    <Route index element={<Lobby colorblindMode={colorblindMode} />} />
+                    <Route path="sign-up" element={<SignUp />} />
+                    <Route path="sign-in" element={<SignIn />} />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
             </CssBaseline>
           </SocketContext.Provider>
         </ThemeProvider>

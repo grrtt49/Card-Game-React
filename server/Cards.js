@@ -13,6 +13,15 @@ class Cards {
 		this.generateAllCards();
 	}
 
+	getData() {
+		return {
+			discardPile: this.discardPile,
+			allCards: this.allCards,
+			currentDeck: this.currentDeck,
+			hands: this.hands,
+		}
+	}
+
 	generateAllCards() {
 		this.allCards = [];
 		for (let i = 0; i <= 9; i++) {
@@ -49,10 +58,16 @@ class Cards {
 		}
 	}
 
-	startGame(players) {
+	async startGame(players) {
 		this.hands = [];
 		for (let i = 0; i < players.length; i++) {
-			players[i].gamePlayerID = i;
+			players[i].user.gamePlayerID = i;
+			try {
+				await players[i].user.save();
+			}
+			catch (err) {
+				console.log("Start game error: ", err);
+			}
 			this.hands.push({});
 		}
 		this.resetDeck();
