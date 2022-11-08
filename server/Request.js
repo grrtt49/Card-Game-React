@@ -10,8 +10,8 @@ class Request {
 
 	async getRequestPlayers(io, mongooseController) {
 		this.players = [];
-		for (let i = 0; i < this.request.players; i++) {
-			let mongoPlayer = mongooseController.getUserFromId(this.request.players[i].id);
+		for (let i = 0; i < this.request.players.length; i++) {
+			let mongoPlayer = await mongooseController.getUserFromId(this.request.players[i].id);
 			this.players.push(new Player(mongoPlayer, io));
 		}
 	}
@@ -27,6 +27,7 @@ class Request {
 	}
 
 	async movePlayersToGame(gameID, mongooseController) {
+		console.log("Moving players to game: ", gameID);
 		let requestRoom = "room" + this.request.requestID;
 		let gameRoom = "game_room" + gameID;
 		for (let i = 0; i < this.players.length; i++) {

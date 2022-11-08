@@ -22,7 +22,7 @@ export default function JoinableRequest (props) {
         >
             {props.nickname}
             <p>{props.numPlayers} / {props.maxPlayers} Players</p>
-            <Button  sx={{width: "100%"}} variant="contained" onClick={() => joinGame(props.requestId)}>Join</Button>
+            <Button  sx={{width: "100%"}} variant="contained" onClick={() => joinGame(props.requestID)}>Join</Button>
         </Paper>
     );
 }

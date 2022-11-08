@@ -71,12 +71,14 @@ io.on('connection', (socket) => {
 	socket.on('create request', async (userInfo) => {
 		try {
 			let authUser = await authenticate(userInfo, player, socket, io);
-			if(!authUser) {
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
 				return;
 			}
-			else {
+			else if (authUser !== true){
 				player = authUser;
 			}
+			// console.log("Validated user: ", authUser);
 			let request = await lobby.createRequestForPlayer(io, player);
 			io.to(player.socket.id).emit("created request", request);
 		}
@@ -88,14 +90,15 @@ io.on('connection', (socket) => {
 	socket.on('get current request', async (userInfo) => {
 		try {
 			let authUser = await authenticate(userInfo, player, socket, io);
-			if(!authUser) {
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
 				return;
 			}
-			else {
+			else if (authUser !== true){
 				player = authUser;
 			}
 			const request = await lobby.getRequest(player.getCurrentRequestID());
-			console.log("CURRENT REQUEST: ", request);
+			// console.log("CURRENT REQUEST: ", request);
 			io.emit('updated request', request);
 		}
 		catch (err) {
@@ -106,10 +109,11 @@ io.on('connection', (socket) => {
 	socket.on('join request', async (requestID, userInfo) => {
 		try {
 			let authUser = await authenticate(userInfo, player, socket, io);
-			if(!authUser) {
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
 				return;
 			}
-			else {
+			else if (authUser !== true){
 				player = authUser;
 			}
 			await lobby.joinRequestFromPlayer(io, player, requestID);
@@ -137,9 +141,17 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('get game data', () => {
+	socket.on('get game data', async (userInfo) => {
 		try {
-			lobby.getGameData(io, player);
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
+			await lobby.getGameData(io, player);
 		}
 		catch (err) {
 			handleError(err, player);
@@ -148,7 +160,7 @@ io.on('connection', (socket) => {
 
 	socket.on('try playing card', (cardID, color="") => {
 		try {
-			let success = lobby.tryPlayingCard(io, player, cardID, color);
+			lobby.tryPlayingCard(io, player, cardID, color);
 		}
 		catch (err) {
 			handleError(err, player);
@@ -190,13 +202,16 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', async () => {
 		try {
-			socket.emit("error", "test");
-
-			if(player.currentRequestID != null) {
+			if(player && player.getCurrentRequestID()) {
 				await lobby.removeCurrentRequest(io, player);
 			}
+		}
+		catch (err) {
+			handleError(err, player);
+		}
 
-			if(player.currentGameID != null) {
+		try {
+			if(player && player.getCurrentGameID()) {
 				await lobby.removePlayerFromGame(io, player);
 			}
 		}
@@ -231,8 +246,10 @@ io.on('connection', (socket) => {
 	socket.on('sign in', async (nickname, password) => {
 		console.log("Signing in");
 		try {
-			const user = await mongooseController.signIn(nickname, password);
-			player = new Player(user);
+			let user = await mongooseController.signIn(nickname, password);
+			user.socket = socket.id;
+			await mongooseController.saveUser(user);
+			player = new Player(user, io);
 			// set socket
 			io.to(player.socket.id).emit('signed in', user);
 		}
@@ -243,22 +260,23 @@ io.on('connection', (socket) => {
 });
 
 function handleError(err, player) {
-	console.log("Handling error: ", err);
+	console.error("Handling error: ", err);
 	try {
 		io.to(player.socket.id).emit("player error", "An unknown server error occurred.");
 	}
 	catch (err2) {
-		console.log("Couldn't send error message: ", err2);
+		console.error("Couldn't send error message: ", err2);
 	}
 }
 
 async function authenticate (userInfo, player, socket, io) {
-	//TODO: check token and nickname here too
-	if(player && player.user) return true;
+	//TODO: need to update every time? :(
+	// if(player && player.user) return true;
 
 	let user = await mongooseController.getUserFromToken(userInfo);
 	user.socket = socket.id;
 	await mongooseController.saveUser(user);
-	console.log("Authenticated: ", user);
-	return new Player(user, io);
+	let newPlayer = new Player(user, io);
+	// console.log("Authenticated: ", newPlayer.user);
+	return newPlayer;
 }

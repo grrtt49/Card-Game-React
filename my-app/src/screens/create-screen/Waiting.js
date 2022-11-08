@@ -38,6 +38,7 @@ export default function Waiting (props) {
     useEffect(() => {
         //get updated
         socket.emit("get current request", props.user);
+        console.log("Trying to get request for: ", props.user);
 
         //subscribe to socket events
         socket.on("updated request", handleJoinedPlayers);

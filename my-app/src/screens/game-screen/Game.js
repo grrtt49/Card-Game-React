@@ -188,7 +188,7 @@ export default function Game(props) {
 	}
 
 	useEffect(() => {
-		socket.emit('get game data');
+		socket.emit('get game data', props.user);
 
 		socket.on('game data', handleNewGameData);
 		socket.on('game over', handleGameOver);

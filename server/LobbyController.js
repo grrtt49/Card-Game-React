@@ -29,7 +29,7 @@ class LobbyController {
 	async createRequest(player) {
 		const requestData = await this.requestModel.createRequest(player);
 		let request = new Request(requestData);
-		console.log("Got request: ", requestData.requestID);
+		// console.log("Got request: ", requestData.requestID);
 		return requestData.requestID;
 	}
 
@@ -42,8 +42,9 @@ class LobbyController {
 		if (id == null) {
 			return null;
 		}
-		const request = new Request(await this.requestModel.getRequest(id));
-		console.log("Got request! :", request);
+		const requestObj = await this.requestModel.getRequest(id);
+		const request = new Request(requestObj);
+		// console.log("Got request! :", request, requestObj);
 		return request;
 	}
 
@@ -55,7 +56,9 @@ class LobbyController {
 		if (id == null) {
 			return null;
 		}
-		return await this.gameModel.getGame(id);
+		const gameObj = await this.gameModel.getGame(id);
+		const game = new Game(gameObj);
+		return game;
 	}
 
 	async removeGameById(id) {
@@ -76,13 +79,13 @@ class LobbyController {
 			await this.mongooseController.updateUser(player.user, "currentRequestID", newRequestID);
 		}
 		else {
-			console.log("Using current request: ", player.getCurrentRequestID());
+			// console.log("Using current request: ", player.getCurrentRequestID());
 		}
 		
 		let request = await this.getRequest(player.getCurrentRequestID());
 
 		if (player.getCurrentRequestID() == null || !request) {
-			console.log("Could not create request", request, player.getCurrentRequestID());
+			// console.log("Could not create request", request, player.getCurrentRequestID());
 			return false;
 		}
 			
@@ -106,7 +109,8 @@ class LobbyController {
 		}
 
 		await this.mongooseController.updateUser(player.user, "currentRequestID", requestID);
-		request.request.players.push(player);
+		request.request.players.push(player.toJSON());
+		// console.log("New players: ", request.request.players);
 		await request.saveRequest();
 		player.socket.join("room" + requestID);
 
@@ -126,9 +130,9 @@ class LobbyController {
 			return;
 		}
 
-		let request = this.getRequest(player.getCurrentRequestID());
+		let request = await this.getRequest(player.getCurrentRequestID());
 
-		if(request == null) {
+		if(!request.request) {
 			console.log("Request already cancelled");
 			io.to(player.socket.id).emit('creator cancelled request', player.getCurrentRequestID());
 			io.to(player.socket.id).emit('player error', "The creator cancelled this game.");
@@ -136,7 +140,7 @@ class LobbyController {
 
 		player.socket.leave("room" + player.getCurrentRequestID());
 		if (request.request.creator != null && request.request.creator.id == player.id()) {
-			this.removeRequestById(player.getCurrentRequestID());
+			await this.removeRequestById(player.getCurrentRequestID());
 			io.emit('remove available request', request);
 			io.to('room' + player.getCurrentRequestID()).emit('creator cancelled request', player.getCurrentRequestID());
 			io.to('room' + player.getCurrentRequestID()).emit('player error', "The creator cancelled this game.");
@@ -156,15 +160,17 @@ class LobbyController {
 	 * @param {Player} player 
 	 */
 	async removePlayerFromGame(io, player) {
-		let game = this.getGame(player.getCurrentGameID());
+		let game = await this.getGame(player.getCurrentGameID());
+		console.log("Removing player from game: ", player.user.nickname, game.game.gameID);
 		
 		if(game === false) {
 			console.log("No game to leave");
 			return;
 		}
 
-		io.to(game.game.room).emit("player error", player.getNickname() + " left the game.");
+		io.to("game_room" + game.game.gameID).emit("player error", player.getNickname() + " left the game.");
 
+		await game.getGamePlayers(io, this.mongooseController);
 		await game.removePlayer(player);
 		game.sendDataToPlayers(io);
 
@@ -172,51 +178,64 @@ class LobbyController {
 	}
 
 	async startGame(io, player) {
-		let request = await this.getRequest(player.getCurrentRequestID());
+		try {
+			let request = await this.getRequest(player.getCurrentRequestID());
 
-		if (request == null) {
-			console.log("No game to start");
-			return;
+			if (request == null) {
+				console.log("No game to start");
+				return;
+			}
+
+			if (player.id() != request.request.creator.id) {
+				console.log("Not the creator");
+				return;
+			}
+
+			await this.removeRequestById(request.request.requestID);
+			io.emit('remove available game', request);
+			console.log("Starting game: " + request.request.requestID);
+
+			let gameData = await this.gameModel.createGame(request.request.players, this.mongooseController, io);
+			let newGame = new Game(gameData);
+			await newGame.getGamePlayers(io, this.mongooseController);
+			const gameID = newGame.game.gameID;
+
+			await request.getRequestPlayers(io, this.mongooseController);
+			await request.movePlayersToGame(gameID, this.mongooseController);
+
+			await newGame.resetPlayersRequestId();
+			newGame.sendDataToPlayers(io, "game started");
 		}
-
-		if (player.id() != request.request.creator.id) {
-			console.log("Not the creator");
-			return;
+		catch (err) {
+			console.log("Start game error: ", err);
 		}
-
-		this.removeRequestById(request.request.requestID);
-		io.emit('remove available game', request);
-		console.log("Starting game: " + request.request.requestID);
-
-		let gameData = await this.gameModel.createGame(request.request.players);
-		let newGame = new Game(gameData);
-		const gameID = newGame.game.gameID;
-		newGame.room = "game_room" + gameID;
-
-		await request.movePlayersToGame(gameID, this.mongooseController);
-
-		await newGame.resetPlayersRequestId();
-		newGame.sendDataToPlayers(io, "game started");
 	}
 
-	getGameData(io, player) {
-		let game = this.getGame(player.getCurrentGameID());
-		if(game == null) {
-			console.log("No game to get");
-			return;
+	async getGameData(io, player) {
+		try {
+			console.log("Trying to get game for: ", player);
+			let game = await this.getGame(player.getCurrentGameID());
+			if(game == null) {
+				console.log("No game to get");
+				return;
+			}
+			await game.getGamePlayers(io, this.mongooseController);
+			io.to(player.socket.id).emit("game data", game.getPlayerGameData(player.getGamePlayerID()));
 		}
-		io.to(player.socket.id).emit("game data", game.getPlayerGameData(player.getGamePlayerID()));
+		catch (err) {
+			console.log("Get game data error: ", err);
+		}
 	}
 
 	async tryPlayingCard(io, player, cardID, color) {
-		let game = this.getGame(player.getCurrentGameID());
+		let game = await this.getGame(player.getCurrentGameID());
 
 		if (game == null) {
 			console.log("No game to play card");
 			return false;
 		}
 
-		let success = game.takeTurn(player.getGamePlayerID(), cardID, color);
+		let success = await game.takeTurn(player.getGamePlayerID(), cardID, color);
 		if (success.success) {
 			game.sendDataToPlayers(io);
 		}
@@ -234,8 +253,8 @@ class LobbyController {
 		return success;
 	}
 
-	endTurn(io, player) {
-		let game = this.getGame(player.getCurrentGameID());
+	async endTurn(io, player) {
+		let game = await this.getGame(player.getCurrentGameID());
 
 		if (game == null) {
 			console.log("No game to end turn");
@@ -247,8 +266,8 @@ class LobbyController {
 		game.sendDataToPlayers(io);
 	}
 
-	sendMessage(io, player, message) {
-		let game = this.getGame(player.getCurrentGameID());
+	async sendMessage(io, player, message) {
+		let game = await this.getGame(player.getCurrentGameID());
 
 		if (game == null) {
 			console.log("No game to send message");

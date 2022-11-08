@@ -32,6 +32,7 @@ class RequestModel {
 
     async getRequest(requestID) {
         try {
+            // console.log("Get request from ID: ", requestID);
             let request = await this.Request.findOne({ requestID: requestID });
             return request;
         }

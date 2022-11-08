@@ -21,7 +21,7 @@ class Player {
 		return this.user ? this.user.currentRequestID : null;
 	}
 
-	getGamePlayerId() {
+	getGamePlayerID() {
 		return this.user ? this.user.gamePlayerID : null;
 	}
 

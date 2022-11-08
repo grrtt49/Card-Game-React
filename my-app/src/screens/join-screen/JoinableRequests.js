@@ -37,7 +37,7 @@ export default function JoinableRequests (props) {
 
     var requestHTML = requests.map((request) => {
         return (
-            < JoinableGame user={props.user} nickname={request.creator.nickname} numPlayers={request.players.length} key={request.id} requestId={request.id} goToWaiting={props.goToWaiting} maxPlayers={10} />
+            < JoinableGame user={props.user} nickname={request.creator.nickname} numPlayers={request.players.length} key={request.id} requestID={request.requestID} goToWaiting={props.goToWaiting} maxPlayers={10} />
         );
     });
 

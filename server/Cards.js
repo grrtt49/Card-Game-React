@@ -6,11 +6,19 @@ class Cards {
 	allCards;
 	hands;
 
-	constructor() {
-		this.discardPile = [];
-		this.allCards = [];
-		this.currentDeck = [];
-		this.generateAllCards();
+	constructor(cardsData) {
+		if(cardsData === undefined) {
+			this.discardPile = [];
+			this.allCards = [];
+			this.currentDeck = [];
+			this.generateAllCards();
+		}
+		else {
+			this.discardPile = cardsData.discardPile;
+			this.allCards = cardsData.allCards;
+			this.currentDeck = cardsData.currentDeck;
+			this.hands = cardsData.hands;
+		}
 	}
 
 	getData() {
@@ -64,6 +72,7 @@ class Cards {
 			players[i].user.gamePlayerID = i;
 			try {
 				await players[i].user.save();
+				// console.log("Set user player id", players[i].user);
 			}
 			catch (err) {
 				console.log("Start game error: ", err);

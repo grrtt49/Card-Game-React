@@ -124,7 +124,7 @@ export default function Lobby (props) {
     }
     else {
         page = (
-            <Game handlePlayerInfoMessage={handlePlayerInfoMessage} backToHome={setStartScreen} colorblindMode={props.colorblindMode} />
+            <Game user={user} handlePlayerInfoMessage={handlePlayerInfoMessage} backToHome={setStartScreen} colorblindMode={props.colorblindMode} />
         );
     }
     

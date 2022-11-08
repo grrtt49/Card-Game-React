@@ -58,17 +58,17 @@ class GameModel {
         }
     }
 
-    async createGame(players) {
+    async createGame(players, mongooseController, io) {
         try {
             console.log("Starting game for players: ", players);
             let cards = new Cards();
-            let mongoPlayers = this.getMongoPlayers(players);
-		    await cards.startGame(mongoPlayers);
+            let playersFromClass = await this.getMongoPlayers(players, mongooseController, io);
+		    await cards.startGame(playersFromClass);
 
             let gameID = crypto.randomBytes(80).toString("hex");
             let game = new this.Game({
                 gameID: gameID,
-                cards: cards,
+                cards: cards.getData(),
                 currentTurn: 0,
                 players: players,
                 numPlayers: players.length,
@@ -86,13 +86,25 @@ class GameModel {
         }
     }
 
-    async getMongoPlayers(players) {
-        let ids = [];
-        for (let i = 0; i < players.length; i++) {
-            ids.push(players.id);
+    async getMongoPlayers(players, mongooseController, io) {
+        try {
+            let ids = [];
+            for (let i = 0; i < players.length; i++) {
+                ids.push(mongoose.Types.ObjectId(players[i].id));
+            }
+            // console.log("ids: ", ids);
+            const mongoPlayers = await mongooseController.User.find({ _id: {$in: ids} });
+            // console.log("Mongo players: ", mongoPlayers);
+
+            let playersFromClass = [];
+            for (let i = 0; i < mongoPlayers.length; i++) {
+                playersFromClass.push(new Player(mongoPlayers[i], io));
+            }
+            return playersFromClass;
         }
-        const mongoPlayers = await this.Game.find({ _id: {$in: ids} });
-        return mongoPlayers;
+        catch (err) {
+            console.log("Get mongo players error: ", err);
+        }
     }
 }
 
