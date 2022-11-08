@@ -67,12 +67,13 @@ class Cards {
 	}
 
 	async startGame(players) {
+		this.shuffle(players);
 		this.hands = [];
 		for (let i = 0; i < players.length; i++) {
 			players[i].user.gamePlayerID = i;
 			try {
 				await players[i].user.save();
-				// console.log("Set user player id", players[i].user);
+				console.log("Set user player id", players[i].user.nickname, players[i].user.gamePlayerID);
 			}
 			catch (err) {
 				console.log("Start game error: ", err);
@@ -117,7 +118,12 @@ class Cards {
 		let keys = Object.keys(this.hands[playerIndex]).sort().reverse();
 		let index = 0;
 		if(keys.length > 0) {
-			index = keys[0] + 1;
+			if(!isNaN(parseInt(keys[0]))) {
+				index = parseInt(keys[0]) + 1;
+			}
+			else {
+				index = keys[0] + 1;
+			}
 		}
 		this.hands[playerIndex][index] = this.getNextCard();
 	}
@@ -127,7 +133,7 @@ class Cards {
 			console.log("Card / hand index not found");
 			return {success: false, msg: "Card not found"};
 		}
-		console.log("Trying to play card: ", this.hands[handIndex][cardIndex]);
+		console.log("Trying to play card: ", handIndex, this.hands[handIndex][cardIndex]);
 		let didPlayCard = this.playCard(this.hands[handIndex][cardIndex], color);
 		if (didPlayCard.success) {
 			let playedCard = this.hands[handIndex][cardIndex];

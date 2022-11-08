@@ -61,7 +61,7 @@ export default function Messenger(props) {
     const handleSendMessage = (event) => {
         event.preventDefault();
         setLoadingSend(true);
-        socket.emit("send message", messageInputText);
+        socket.emit("send message", props.user, messageInputText);
     };
 
     const handleChangeMessageInput = (event) => {

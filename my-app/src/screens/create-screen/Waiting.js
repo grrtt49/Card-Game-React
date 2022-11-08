@@ -18,7 +18,7 @@ export default function Waiting (props) {
     }, []);
 
     const creatorStartGame = () => {
-        socket.emit('start game');
+        socket.emit('start game', props.user);
     };
 
     const backToLobby = () => {

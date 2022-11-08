@@ -9,11 +9,12 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { SnackbarProvider } from 'notistack'
 import PrimaryAppBar from './screens/PrimaryAppBar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignUp from './screens/SignUp';
 import SignIn from './screens/SignIn';
 import Layout from './Layout';
+import { useLocalStorage } from './useLocalStorage';
 
 let darkTheme = createTheme({
   palette: {
@@ -45,6 +46,22 @@ darkTheme = responsiveFontSizes(darkTheme);
 
 function App() {
   const [colorblindMode, setColorblindMode] = useState(false);
+  const [user, setUser] = useLocalStorage("user", null);
+
+  const setColorblindModeInDatabase = (mode) => {
+    if(user && user.settings) {
+      let settings = user.settings; 
+      settings.colorblindMode = mode;
+      socket.emit('set settings', settings);
+    }
+    setColorblindMode(mode);
+  }
+
+  useEffect(() => {
+    if(user && user.settings) {
+      setColorblindMode(user.settings.colorblindMode);
+    }
+  }, []);
 
   return (
     <ThemeProvider theme={zIndexTheme}>
@@ -54,8 +71,8 @@ function App() {
             <CssBaseline>
               <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindMode} />}>
-                    <Route index element={<Lobby colorblindMode={colorblindMode} />} />
+                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindModeInDatabase} />}>
+                    <Route index element={<Lobby user={user} colorblindMode={colorblindMode} />} />
                     <Route path="sign-up" element={<SignUp />} />
                     <Route path="sign-in" element={<SignIn />} />
                   </Route>

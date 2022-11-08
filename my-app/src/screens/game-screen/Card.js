@@ -15,20 +15,25 @@ export default function Card (props) {
 
 	const cardClicked = () => {
 		console.log("CLICKED", props.cardID);
-		if (props.canClick) {
-			if(props.color == "black") {
-				if(props.selectedWild != props.cardID) {
-					props.setShowColorSelector(true);
-					props.setSelectedWild(props.cardID);
+		if (props.isTurn) {
+			if (props.canClick) {
+				if(props.color == "black") {
+					if(props.selectedWild != props.cardID) {
+						props.setShowColorSelector(true);
+						props.setSelectedWild(props.cardID);
+						return;
+					}
+					props.setShowColorSelector(false);
+					props.setSelectedWild(null);
 					return;
 				}
-				props.setShowColorSelector(false);
-				props.setSelectedWild(null);
-				return;
-			}
 
-			props.setSelectedWild(null);
-			socket.emit('try playing card', props.cardID);
+				props.setSelectedWild(null);
+				socket.emit('try playing card', props.user, props.cardID);
+			}
+		}
+		else {
+			props.sendNotYourTurn();
 		}
 	}
 

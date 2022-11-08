@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
 			callback(await lobby.getActiveRequests());
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -83,7 +83,7 @@ io.on('connection', (socket) => {
 			io.to(player.socket.id).emit("created request", request);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -102,7 +102,7 @@ io.on('connection', (socket) => {
 			io.emit('updated request', request);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
 			await lobby.joinRequestFromPlayer(io, player, requestID);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -128,16 +128,24 @@ io.on('connection', (socket) => {
 			await lobby.removeCurrentRequest(io, player);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
-	socket.on('start game', async () => {
+	socket.on('start game', async (userInfo) => {
 		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
 			await lobby.startGame(io, player);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -154,34 +162,58 @@ io.on('connection', (socket) => {
 			await lobby.getGameData(io, player);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
-	socket.on('try playing card', async (cardID, color="") => {
+	socket.on('try playing card', async (userInfo, cardID, color="") => {
 		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
 			await lobby.tryPlayingCard(io, player, cardID, color);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
-	socket.on('end turn', async () => {
+	socket.on('end turn', async (userInfo) => {
 		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
 			await lobby.endTurn(io, player);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
-	socket.on('send message', (message) => {
+	socket.on('send message', async (userInfo, message) => {
 		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
 			lobby.sendMessage(io, player, message);
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -196,7 +228,7 @@ io.on('connection', (socket) => {
 			}
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -207,7 +239,7 @@ io.on('connection', (socket) => {
 			}
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 
 		try {
@@ -216,18 +248,28 @@ io.on('connection', (socket) => {
 			}
 		}
 		catch (err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
-	socket.on('get users', async () => {
-		console.log("Getting users");
+	socket.on('set settings', async (userInfo, settings) => {
+		console.log("Set settings");
 		try {
-			const users = await mongooseController.getUsers();
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
+
+			player.user.settings.colorblindMode = settings.colorblindMode === true;
+			await mongooseController.saveUser(player.user);
 			io.to(player.socket.id).emit('users', users);
 		}
 		catch(err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -239,7 +281,7 @@ io.on('connection', (socket) => {
 			io.to(player.socket.id).emit('signed up', success.client);
 		}
 		catch(err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 
@@ -254,15 +296,15 @@ io.on('connection', (socket) => {
 			io.to(player.socket.id).emit('signed in', user);
 		}
 		catch(err) {
-			handleError(err, player);
+			handleError(err, socket);
 		}
 	});
 });
 
-function handleError(err, player) {
+function handleError(err, socket) {
 	console.error("Handling error: ", err);
 	try {
-		io.to(player.socket.id).emit("player error", "An unknown server error occurred.");
+		io.to(socket.id).emit("player error", "An unknown server error occurred.");
 	}
 	catch (err2) {
 		console.error("Couldn't send error message: ", err2);
@@ -270,9 +312,10 @@ function handleError(err, player) {
 }
 
 async function authenticate (userInfo, player, socket, io) {
-	//TODO: need to update every time? :(
-	// if(player && player.user) return true;
-
+	if(!userInfo || !userInfo.nickname || !userInfo.token) {
+		io.to(socket.id).emit('player error', 'Please log in and try again.');
+		return false;
+	}
 	let user = await mongooseController.getUserFromToken(userInfo);
 	user.socket = socket.id;
 	await mongooseController.saveUser(user);

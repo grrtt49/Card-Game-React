@@ -213,7 +213,7 @@ class LobbyController {
 
 	async getGameData(io, player) {
 		try {
-			console.log("Trying to get game for: ", player);
+			// console.log("Trying to get game for: ", player);
 			let game = await this.getGame(player.getCurrentGameID());
 			if(game == null) {
 				console.log("No game to get");

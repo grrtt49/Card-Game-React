@@ -23,7 +23,8 @@ export default function SignIn (props) {
         setPassword(event.target.value);
     };
 
-    const handleSignIn = () => {
+    const handleSignIn = (e) => {
+        e.preventDefault();
         console.log("Emiting sign in: ", nickname, password);
         socket.emit('sign in', nickname, password);
     }; 
@@ -49,7 +50,9 @@ export default function SignIn (props) {
     }, [socket]);
 
     return (
-        <form>
+        <form
+            onSubmit={(e) => handleSignIn(e)}
+        >
             <Stack alignItems="center" spacing={3}>
                 <TextField 
                     color="white" 
@@ -75,11 +78,30 @@ export default function SignIn (props) {
                 <Button 
                     variant="contained"  
                     sx={{width: 150}} 
-                    onClick={() => handleSignIn()}
                     disabled={nickname == "" || password == ""}
+                    type="submit"
                 >
                     Sign In
                 </Button>
+                <Stack alignItems="center">
+                    <Typography
+                        textAlign="center"
+                    >
+                        Don't have an account yet?
+                    </Typography>
+                    <Link
+                        to="/sign-up"
+                        style={{ textDecoration: "none"}}
+                    >
+                        <Button 
+                            // variant="contained"  
+                            color="secondary"
+                            sx={{width: 150}} 
+                        >
+                            Sign Up
+                        </Button>
+                    </Link>
+                </Stack>
             </Stack>
         </form>
     );

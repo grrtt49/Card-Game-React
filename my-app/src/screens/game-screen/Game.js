@@ -13,6 +13,7 @@ import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useSnackbar } from 'notistack';
 
 var spreadFan = {
 	direction: 'right',
@@ -37,10 +38,13 @@ export default function Game(props) {
 	const [fan, setFan] = useState(spreadFan);
 	const [playerTurnData, setPlayerTurnData] = useState([]);
 	const [isReversed, setIsReversed] = useState(false);
+	const [isTurn, setIsTurn] = useState(false);
 	const [nextCard, setNextCard] = useState({
 		number: 1,
 		color: "red",
 	});
+
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
 	const socket = useContext(SocketContext);
 
@@ -68,6 +72,10 @@ export default function Game(props) {
 		setCards(cards);
 	}, []);
 
+	const handleNotYourTurn = () => {
+		enqueueSnackbar("It is not your turn", {variant: "error"});
+	}
+
 	const getCardFromObj = (card, index, canClick = true) => {
 		if (card == undefined) {
 			console.log("Undefined card");
@@ -84,6 +92,9 @@ export default function Game(props) {
 				setShowColorSelector={setShowColorSelector}
 				setSelectedWild={setSelectedWild} 
 				selectedWild={selectedWild} 
+				isTurn={isTurn}
+				user={props.user}
+				sendNotYourTurn={handleNotYourTurn}
 				colorblind={props.colorblindMode}
 			/>
 		);
@@ -100,16 +111,22 @@ export default function Game(props) {
 		if(gameData.isTurn) {
 			props.handlePlayerInfoMessage("It's your turn now!");
 		}
+		setIsTurn(gameData.isTurn);
 	};
 
 	const handleEndTurn = () => {
-		if(showColorSelector) { //if wild is selected
-			socket.emit('try playing card', selectedWild, selectedColor);
-			setShowColorSelector(false);
-			setSelectedWild(null);
-			return;
+		if(isTurn) {
+			if(showColorSelector) { //if wild is selected
+				socket.emit('try playing card', props.user, selectedWild, selectedColor);
+				setShowColorSelector(false);
+				setSelectedWild(null);
+				return;
+			}
+			socket.emit('end turn', props.user);
 		}
-		socket.emit('end turn');
+		else {
+			handleNotYourTurn();
+		}
 	};
 
 	const handleColorClicked = (color) => {
@@ -239,8 +256,6 @@ export default function Game(props) {
 		); 
 	});
 
-	let val = true;
-
 	return (
 		<Stack spacing={4}>
 			<Stack spacing={2} alignItems="center">
@@ -297,7 +312,7 @@ export default function Game(props) {
 			</Stack>
 			<Box height="50px"></Box>
 
-			<Messenger />
+			<Messenger user={props.user} />
 			<GameOverScreen isOpen={showGameOver} onClose={()=>setShowGameOver(false)} onBackToHome={handleBackToHome} gameData={gameOverData}/>
 		</Stack>
 	);

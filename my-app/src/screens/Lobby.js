@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { useSnackbar } from 'notistack';
-import { useLocalStorage } from '../useLocalStorage';
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Lobby (props) {
     const socket = useContext(SocketContext);
@@ -15,7 +15,10 @@ export default function Lobby (props) {
 
     const [pageStatus, setPageStatus] = useState('start');
     const [isCreator, setIsCreator] = useState(false);
-    const [user, setUser] = useLocalStorage("user", null);
+
+    const user = props.user;
+
+    const navigate = useNavigate();
 
     const setWaitingScreen = useCallback(() => {
         setPageStatus('waiting');
@@ -82,6 +85,9 @@ export default function Lobby (props) {
     };
 
     useEffect(() => {
+        if(!user) {
+            navigate("/sign-in");
+        }
         socket.on('created request', createCallback);
         socket.on('player error', handlePlayerError);
         socket.on('connect_error', err => handleSocketErrors(err));

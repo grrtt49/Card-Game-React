@@ -25,6 +25,9 @@ class MongooseController {
             gamePlayerID: String,
             online: Boolean,
             socket: String,
+            settings: {
+                colorblindMode: Boolean,
+            },
         });
 
         userSchema.virtual('id')
@@ -72,6 +75,9 @@ class MongooseController {
                 gamePlayerID: null,
                 online: true,
                 socket: socket.id,
+                settings: {
+                    colorblindMode: false,
+                },
             });
 
             const insertedUser = await user.save();

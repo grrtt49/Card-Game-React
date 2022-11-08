@@ -25,6 +25,10 @@ class Player {
 		return this.user ? this.user.gamePlayerID : null;
 	}
 
+	getSettings() {
+		return this.user ? this.user.settings : null;
+	}
+
 	id() {
 		return this.user ? this.user.id : null;	
 	}
@@ -33,6 +37,7 @@ class Player {
 		return {
 			"id": this.id(),
 			"nickname": this.getNickname(),
+			"settings": this.user.settings,
 			"socketID": this.socket.id,
 		}
 	}

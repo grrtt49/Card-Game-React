@@ -52,7 +52,7 @@ class Game {
 
 		this.nextTurn();
 
-		console.log("Setting cards: ", cards.getData());
+		// console.log("Setting cards: ", cards.getData());
 		this.game.cards = cards.getData();
 		this.game.markModified('cards');
 		await this.saveGame();
@@ -67,7 +67,7 @@ class Game {
 		let cards = new Cards(this.game.cards);
 		cards.drawCardForPlayer(playerIndex);
 
-		console.log("Cards: ", cards);
+		// console.log("Cards: ", cards);
 		this.game.cards = cards.getData();
 		this.game.markModified('cards');
 
@@ -84,21 +84,23 @@ class Game {
 		let cards = new Cards(this.game.cards);
 		let playerTurnData = [];
 		for (let i = 0; i < this.players.length; i++) {
+			const gamePlayerID = this.players[i].getGamePlayerID();
 			playerTurnData.push({
 				name: this.players[i].getNickname(),
-				isCurrent: this.game.currentTurn == i,
-				numCards: Object.keys(cards.hands[i]).length,
+				isCurrent: this.game.currentTurn == gamePlayerID,
+				numCards: Object.keys(cards.hands[gamePlayerID]).length,
 			}); 
 		}
 
 		console.log("Game players: ", this.game.players);
 		for (let i = 0; i < this.players.length; i++) {
+			const gamePlayerID = this.players[i].getGamePlayerID();
 			let data = {
-				playerCards: cards.hands[i],
+				playerCards: cards.hands[gamePlayerID],
 				currentTurn: this.game.currentTurn,
 				topCard: cards.getTopCard(),
 				playerTurnData: playerTurnData,
-				isTurn: this.game.currentTurn == i,
+				isTurn: this.game.currentTurn == gamePlayerID,
 				isReversed: this.game.isReversed,
 			};
 			console.log("Sending game data (players): ", this.players[i].socket.id);
@@ -147,7 +149,7 @@ class Game {
 		for (let i = 0; i < this.players.length; i++) {
 			playerTurnData.push({
 				name: this.players[i].getNickname(),
-				isCurrent: this.game.currentTurn == i,
+				isCurrent: this.game.currentTurn == this.players[i].getGamePlayerID(),
 				numCards: Object.keys(cards.hands[i]).length,
 			});
 		}
