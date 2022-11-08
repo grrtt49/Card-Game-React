@@ -251,7 +251,7 @@ export default function Game(props) {
 					sx={{
 						transition: "transform 0.5s ease-in",
 						transform: "rotate("+(isReversed ? 180 : 0)+"deg)"
-					}}
+					}} 
 				/>
 			</Stack>
 			<Stack justifyContent="center" alignItems="center">

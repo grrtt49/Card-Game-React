@@ -127,6 +127,7 @@ class Cards {
 			console.log("Card / hand index not found");
 			return {success: false, msg: "Card not found"};
 		}
+		console.log("Trying to play card: ", this.hands[handIndex][cardIndex]);
 		let didPlayCard = this.playCard(this.hands[handIndex][cardIndex], color);
 		if (didPlayCard.success) {
 			let playedCard = this.hands[handIndex][cardIndex];

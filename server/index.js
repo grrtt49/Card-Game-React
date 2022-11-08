@@ -158,18 +158,18 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('try playing card', (cardID, color="") => {
+	socket.on('try playing card', async (cardID, color="") => {
 		try {
-			lobby.tryPlayingCard(io, player, cardID, color);
+			await lobby.tryPlayingCard(io, player, cardID, color);
 		}
 		catch (err) {
 			handleError(err, player);
 		}
 	});
 
-	socket.on('end turn', () => {
+	socket.on('end turn', async () => {
 		try {
-			lobby.endTurn(io, player);
+			await lobby.endTurn(io, player);
 		}
 		catch (err) {
 			handleError(err, player);

@@ -235,6 +235,7 @@ class LobbyController {
 			return false;
 		}
 
+		await game.getGamePlayers(io, this.mongooseController);
 		let success = await game.takeTurn(player.getGamePlayerID(), cardID, color);
 		if (success.success) {
 			game.sendDataToPlayers(io);
@@ -261,7 +262,8 @@ class LobbyController {
 			return false;
 		}
 
-		game.endTurnForPlayer(player.getGamePlayerID());
+		await game.getGamePlayers(io, this.mongooseController);
+		await game.endTurnForPlayer(player.getGamePlayerID());
 
 		game.sendDataToPlayers(io);
 	}

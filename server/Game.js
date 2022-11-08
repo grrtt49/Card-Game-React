@@ -15,8 +15,10 @@ class Game {
 
 	async getGamePlayers(io, mongooseController) {
 		this.players = [];
+		console.log("Adding players: ", this.game.players);
 		for (let i = 0; i < this.game.players.length; i++) {
 			let mongoPlayer = await mongooseController.getUserFromId(this.game.players[i].id);
+			console.log("Adding player: ", mongoPlayer.socket);
 			this.players.push(new Player(mongoPlayer, io));
 		}
 	}
@@ -52,17 +54,26 @@ class Game {
 
 		console.log("Setting cards: ", cards.getData());
 		this.game.cards = cards.getData();
+		this.game.markModified('cards');
 		await this.saveGame();
 		return playedCard;
 	}
 
-	endTurnForPlayer(playerIndex) {
-		if (playerIndex != this.currentTurn) {
+	async endTurnForPlayer(playerIndex) {
+		if (playerIndex != this.game.currentTurn) {
 			console.log("Not your turn");
 			return false;
 		}
-		this.game.cards.drawCardForPlayer(playerIndex);
+		let cards = new Cards(this.game.cards);
+		cards.drawCardForPlayer(playerIndex);
+
+		console.log("Cards: ", cards);
+		this.game.cards = cards.getData();
+		this.game.markModified('cards');
+
 		this.nextTurn();
+
+		await this.saveGame();
 	}
 
 	nextTurn() {
@@ -70,7 +81,6 @@ class Game {
 	}
 
 	sendDataToPlayers(io, message = "game data") {
-		// console.log("Sending game data (cards): ", this.game.cards.hands);
 		let cards = new Cards(this.game.cards);
 		let playerTurnData = [];
 		for (let i = 0; i < this.players.length; i++) {
@@ -81,6 +91,7 @@ class Game {
 			}); 
 		}
 
+		console.log("Game players: ", this.game.players);
 		for (let i = 0; i < this.players.length; i++) {
 			let data = {
 				playerCards: cards.hands[i],
@@ -90,6 +101,7 @@ class Game {
 				isTurn: this.game.currentTurn == i,
 				isReversed: this.game.isReversed,
 			};
+			console.log("Sending game data (players): ", this.players[i].socket.id);
 			io.to(this.players[i].socket.id).emit(message, data);
 		}
 	}
@@ -105,20 +117,20 @@ class Game {
 
 	sendGameOverToPlayers(io) {
 		let playerTurnData = [];
-		for (let i = 0; i < this.game.players.length; i++) {
+		for (let i = 0; i < this.players.length; i++) {
 			playerTurnData.push({
-				name: this.game.players[i].getNickname(),
+				name: this.players[i].getNickname(),
 				numCards: Object.keys(this.game.cards.hands[i]).length,
 			});
 		}
 
-		for (let i = 0; i < this.game.players.length; i++) {
+		for (let i = 0; i < this.players.length; i++) {
 			let data = {
 				won: Object.keys(this.game.cards.hands[i]).length == 0,
 				players: playerTurnData,
 			};
 
-			io.to(this.game.players[i].socket.id).emit("game over", data);
+			io.to(this.players[i].socket.id).emit("game over", data);
 		}
 	}
 
@@ -184,10 +196,11 @@ class Game {
 	}
 
 	async removeAllPlayers() {
-		for (let i = 0; i < this.game.players.length; i++) {
-			await this.mongooseController.updateUser(this.game.players[i].user, "currentGameID", null);
+		for (let i = 0; i < this.players.length; i++) {
+			this.players[i].user.currentGameID = null;
+			await this.saveUser(this.players[i].user);
 		}
-		this.game.players = [];
+		this.players = [];
 		await this.saveGame();
 	}
 
