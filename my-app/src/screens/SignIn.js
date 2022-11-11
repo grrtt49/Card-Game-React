@@ -36,10 +36,13 @@ export default function SignIn (props) {
         else {
             enqueueSnackbar("Signed in! Welcome, " + user.nickname + "!", { preventDuplicate: true, variant: "success" });
             if(window != undefined) {
-                window.localStorage.setItem("user", JSON.stringify(user));
+                let userJSON = JSON.stringify(user);
+                window.localStorage.setItem("user", userJSON);
+                props.setUser(user);
             }
             else {
                 console.log("window error");
+                props.setUser(user);
             }
             navigate("/");
         }
@@ -47,6 +50,10 @@ export default function SignIn (props) {
 
     useEffect(() => {
         socket.on('signed in', handleSignedIn);
+
+        return () => {
+            socket.off('signed in', handleSignedIn);
+        };
     }, [socket]);
 
     return (
@@ -81,7 +88,7 @@ export default function SignIn (props) {
                     disabled={nickname == "" || password == ""}
                     type="submit"
                 >
-                    Sign In
+                    Log In
                 </Button>
                 <Stack alignItems="center">
                     <Typography

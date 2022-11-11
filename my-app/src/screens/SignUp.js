@@ -2,7 +2,7 @@ import { Button, Stack, TextField, Typography } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../context/socket";
 import { useSnackbar } from 'notistack';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 
 
 export default function SignUp (props) {
@@ -14,6 +14,7 @@ export default function SignUp (props) {
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
     const { enqueueSnackbar } = useSnackbar();
+    const navigate = useNavigate();
     const socket = useContext(SocketContext);
 
     const handleNickname = (event) => {
@@ -55,9 +56,24 @@ export default function SignUp (props) {
         socket.emit('sign up', nickname, password);
     }; 
 
-    const handleSignedUp = (success) => {
-        console.log("Signed up: ", success);
-        
+    const handleSignedUp = (user) => {
+        console.log("Signed up: ", user);
+        if(user === false) {
+            enqueueSnackbar("Can't create this user", { preventDuplicate: true, variant: "error" });
+        }
+        else {
+            enqueueSnackbar("Signed up! Welcome, " + user.nickname + "!", { preventDuplicate: true, variant: "success" });
+            if(window != undefined) {
+                let userJSON = JSON.stringify(user);
+                window.localStorage.setItem("user", userJSON);
+                props.setUser(user);
+            }
+            else {
+                console.log("window error");
+                props.setUser(user);
+            }
+            navigate("/");
+        }
     }
 
     const handlePlayerError = (msg) => {
@@ -134,7 +150,7 @@ export default function SignUp (props) {
                             color="secondary"
                             sx={{width: 150}} 
                         >
-                            Sign In
+                            Log In
                         </Button>
                     </Link>
                 </div>

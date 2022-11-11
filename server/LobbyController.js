@@ -44,7 +44,7 @@ class LobbyController {
 		}
 		const requestObj = await this.requestModel.getRequest(id);
 		const request = new Request(requestObj);
-		// console.log("Got request! :", request, requestObj);
+		// console.log("Got request! :", id, request, requestObj);
 		return request;
 	}
 
@@ -101,6 +101,7 @@ class LobbyController {
 			return;
 		}
 
+		console.log("Joining request from player: ", player.id(), requestID);
 		let request = await this.getRequest(requestID);
 
 		if (request == null) {

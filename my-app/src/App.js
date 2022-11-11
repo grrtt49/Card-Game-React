@@ -7,7 +7,7 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import { SnackbarProvider } from 'notistack'
+import { SnackbarProvider } from 'notistack';
 import PrimaryAppBar from './screens/PrimaryAppBar';
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -61,6 +61,7 @@ function App() {
     if(user && user.settings) {
       setColorblindMode(user.settings.colorblindMode);
     }
+    socket.emit('sign in token', user);
   }, []);
 
   return (
@@ -71,10 +72,10 @@ function App() {
             <CssBaseline>
               <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindModeInDatabase} />}>
+                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindModeInDatabase} user={user} />}>
                     <Route index element={<Lobby user={user} colorblindMode={colorblindMode} />} />
-                    <Route path="sign-up" element={<SignUp />} />
-                    <Route path="sign-in" element={<SignIn />} />
+                    <Route path="sign-up" element={<SignUp setUser={setUser} />} />
+                    <Route path="sign-in" element={<SignIn setUser={setUser} />} />
                   </Route>
                 </Routes>
               </BrowserRouter>

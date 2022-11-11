@@ -41,8 +41,16 @@ io.on('connection', (socket) => {
 	console.log("Player connected: ", socket.id);
 	var player = null;
 
-	socket.on('get available requests', async (callback) => {
+	socket.on('get available requests', async (userInfo, callback) => {
 		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
 			callback(await lobby.getActiveRequests());
 		}
 		catch (err) {
@@ -116,6 +124,7 @@ io.on('connection', (socket) => {
 			else if (authUser !== true){
 				player = authUser;
 			}
+			console.log("Joining request: ", player.id(), requestID);
 			await lobby.joinRequestFromPlayer(io, player, requestID);
 		}
 		catch (err) {
@@ -125,6 +134,14 @@ io.on('connection', (socket) => {
 
 	socket.on('remove current request', async () => {
 		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
 			await lobby.removeCurrentRequest(io, player);
 		}
 		catch (err) {
@@ -277,8 +294,10 @@ io.on('connection', (socket) => {
 		console.log("Signing up");
 		try {
 			const success = await mongooseController.signUp(nickname, password, socket);
-			player = new Player(success.user, io);
-			io.to(player.socket.id).emit('signed up', success.client);
+			if(success !== false) {
+				player = new Player(success.user, io);
+				io.to(player.socket.id).emit('signed up', success.client);
+			}
 		}
 		catch(err) {
 			handleError(err, socket);
@@ -293,7 +312,30 @@ io.on('connection', (socket) => {
 			await mongooseController.saveUser(user);
 			player = new Player(user, io);
 			// set socket
-			io.to(player.socket.id).emit('signed in', user);
+			io.to(player.socket.id).emit('signed in', {nickname: user.nickname, token: user.token});
+		}
+		catch(err) {
+			handleError(err, socket);
+		}
+	});
+
+	socket.on('sign in token', async (userInfo) => {
+		console.log("Signing in");
+		try {
+			let sendNotification = (!player || socket.id != player.socket.id);
+
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
+			// Only send notification if user wasn't signed in before
+			if(sendNotification) {
+				io.to(player.socket.id).emit('signed in token', {nickname: player.user.nickname, token: player.user.token});
+			}
 		}
 		catch(err) {
 			handleError(err, socket);

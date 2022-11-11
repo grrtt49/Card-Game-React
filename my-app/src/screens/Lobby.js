@@ -84,6 +84,11 @@ export default function Lobby (props) {
         console.log(users);
     };
 
+    const handleSignedInToken = (user) => {
+        // console.log("Signed in token: ", user);
+        enqueueSnackbar("Signed in! Welcome, " + user.nickname + "!", { preventDuplicate: true, variant: "success" });
+    }
+
     useEffect(() => {
         if(!user) {
             navigate("/sign-in");
@@ -95,6 +100,7 @@ export default function Lobby (props) {
         socket.on('disconnect', err => handleSocketErrors(err));
         socket.on('connect', handleCloseErrors);
         socket.on('users', handleUsers);
+        socket.on('signed in token', handleSignedInToken);
 
         return () => {
             socket.off('created request', createCallback);
@@ -104,6 +110,7 @@ export default function Lobby (props) {
             socket.off('disconnect', err => handleSocketErrors(err));
             socket.off('connect', handleCloseErrors);
             socket.off('users', handleUsers);
+            socket.off('signed in token', handleSignedInToken);
         };
     }, [socket, isCreator]);
 

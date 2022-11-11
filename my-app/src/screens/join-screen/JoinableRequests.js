@@ -17,12 +17,12 @@ export default function JoinableRequests (props) {
     }, []);
 
     const handleNewRequest = () => {
-        socket.emit("get available requests", handleAvailableRequests);
+        socket.emit("get available requests", props.user, handleAvailableRequests);
     }
 
     useEffect(() => {
         //send request
-        socket.emit("get available requests", handleAvailableRequests);
+        socket.emit("get available requests", props.user, handleAvailableRequests);
 
         //subscribe to events
         socket.on('new available request', handleNewRequest);
