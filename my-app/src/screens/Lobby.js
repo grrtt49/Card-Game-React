@@ -13,28 +13,29 @@ export default function Lobby (props) {
     const socket = useContext(SocketContext);
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-    const [pageStatus, setPageStatus] = useState('start');
     const [isCreator, setIsCreator] = useState(false);
 
-    const user = props.user;
+    const { user, setPageStatus } = props;
+
+    const setWaitingScreen = () => {
+        setPageStatus('waiting');
+    };
+  
+    const setJoinScreen = () => {
+        setPageStatus('join');
+    };
+  
+    const setStartScreen = () => {
+        setPageStatus('start');
+    };
+  
+    const setGameScreen = () => {
+        setPageStatus('game');
+    };
 
     const navigate = useNavigate();
 
-    const setWaitingScreen = useCallback(() => {
-        setPageStatus('waiting');
-    }, []);
-
-    const setJoinScreen = useCallback(() => {
-        setPageStatus('join');
-    }, []);
-
-    const setStartScreen = useCallback(() => {
-        setPageStatus('start');
-    }, []);
-
-    const setGameScreen = useCallback(() => {
-        setPageStatus('game');
-    }, []);
+    const pageStatus = props.pageStatus;
 
     const handleStartGame = (game) => {
         console.log("Handling game: ", game);

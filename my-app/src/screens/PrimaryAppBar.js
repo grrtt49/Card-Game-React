@@ -11,14 +11,16 @@ import CloseIcon from '@mui/icons-material/Close';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { FormControlLabel, Stack, Switch } from '@mui/material';
+import { DialogActions, FormControlLabel, Stack, Switch } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import { PieChart } from 'react-minimal-pie-chart';
+import {SocketContext} from '../context/socket';
 
 export default function PrimaryAppBar(props) {
   const [isSettingsOpen, setSettingsOpen] = React.useState(false);
   const [isAccountOpen, setAccountOpen] = React.useState(false);
 
+  const socket = React.useContext(SocketContext);
   const navigate = useNavigate();
 
   const handleAccountOpen = () => {
@@ -48,8 +50,15 @@ export default function PrimaryAppBar(props) {
   };
 
   const handleSignOut = () => {
-
+    window.localStorage.setItem("user", null);
+    navigate("/sign-in");
     handleCloseAccount();
+  };
+
+  const handleQuit = () => {
+    socket.emit('quit game', props.user);
+    props.setPageStatus('start');
+    handleCloseSettings();
   };
 
   const loggedOutInfo = (
@@ -106,6 +115,16 @@ export default function PrimaryAppBar(props) {
       <Button variant="contained" onClick={handleSignOut}>Log out</Button>
     </Stack>
   );
+
+  let settingsActions = "";
+  console.log("PAge status: ", props.pageStatus);
+  if(props.pageStatus == "game") {
+    settingsActions = (
+        <DialogActions>
+          <Button color="error" variant="contained" onClick={handleQuit}>Quit Game</Button>
+        </DialogActions>
+    );
+  }
 
   const menuId = 'primary-search-settings-menu';
   const accountId = 'primary-search-account-menu';
@@ -168,6 +187,7 @@ export default function PrimaryAppBar(props) {
         <DialogContent>
           <FormControlLabel control={<Switch onChange={() => props.setColorblindMode(!props.colorblindMode)} checked={props.colorblindMode} />} label="Colorblind Mode" />
         </DialogContent>
+        {settingsActions}
       </Dialog>
       <Dialog open={isAccountOpen} onClose={handleCloseAccount}>
         <DialogTitle>

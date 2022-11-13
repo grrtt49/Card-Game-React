@@ -305,6 +305,18 @@ class LobbyController {
 		await newGameContainer.getGamePlayers(io, this.mongooseController); 
 		newGameContainer.sendDataToPlayers(io);
 	}
+
+	async removePlayerFromGame(io, player) {
+		let game = await this.getGame(player.getCurrentGameID());
+
+		if (game == null) {
+			console.log("No game to remove from");
+			return false;
+		}
+
+		await game.getGamePlayers(io, this.mongooseController);
+		await game.removePlayer(player);
+	}
 }
 
 module.exports = LobbyController;

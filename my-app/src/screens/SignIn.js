@@ -29,6 +29,10 @@ export default function SignIn (props) {
         socket.emit('sign in', nickname, password);
     }; 
 
+    const handlePlayerError = (msg) => {
+        enqueueSnackbar(msg, {variant: "error"});
+    };
+
     const handleSignedIn = (user) => {
         if(user === false) {
             enqueueSnackbar("Nickname or password is incorrect", { preventDuplicate: true, variant: "error" });
@@ -50,10 +54,12 @@ export default function SignIn (props) {
 
     useEffect(() => {
         socket.on('signed in', handleSignedIn);
+        socket.on('player error', handlePlayerError);
 
         return () => {
             socket.off('signed in', handleSignedIn);
-        };
+            socket.off('player error', handlePlayerError);
+    };
     }, [socket]);
 
     return (

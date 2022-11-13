@@ -91,7 +91,7 @@ class MongooseController {
         }
     }
 
-    async signIn (nickname, password) {
+    async signIn (nickname, password, playerSocket) {
         try {
             let user = await this.User.findOne({ nickname: nickname });
             if(user) {
@@ -102,12 +102,12 @@ class MongooseController {
                 console.log("Password is not valid: ", password, user.password);
             }
             console.log("Nickname is not valid");
-            this.socket.emit('player error', "Username or password is incorrect");
+            this.socket.to(playerSocket.id).emit('player error', "Username or password is incorrect");
             return false;
         }
         catch (err) {
             console.log("Sign in error: ", err);
-            this.socket.emit('player error', "Error signing in, please try again.");
+            this.socket.to(playerSocket.id).emit('player error', "Error signing in, please try again.");
             return false;
         }
     }

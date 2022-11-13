@@ -47,6 +47,7 @@ darkTheme = responsiveFontSizes(darkTheme);
 function App() {
   const [colorblindMode, setColorblindMode] = useState(false);
   const [user, setUser] = useLocalStorage("user", null);
+  const [pageStatus, setPageStatus] = useState('start');
 
   const setColorblindModeInDatabase = (mode) => {
     if(user && user.settings) {
@@ -72,8 +73,8 @@ function App() {
             <CssBaseline>
               <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindModeInDatabase} user={user} />}>
-                    <Route index element={<Lobby user={user} colorblindMode={colorblindMode} />} />
+                  <Route path="/" element={<Layout colorblindMode={colorblindMode} setColorblindMode={setColorblindModeInDatabase} user={user} setPageStatus={setPageStatus} pageStatus={pageStatus} />}>
+                    <Route index element={<Lobby user={user} colorblindMode={colorblindMode} pageStatus={pageStatus} setPageStatus={setPageStatus} />} />
                     <Route path="sign-up" element={<SignUp setUser={setUser} />} />
                     <Route path="sign-in" element={<SignIn setUser={setUser} />} />
                   </Route>
