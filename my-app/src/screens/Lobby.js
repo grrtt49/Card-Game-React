@@ -45,6 +45,7 @@ export default function Lobby (props) {
         if (request === false) return; //failed
         setIsCreator(true);
         setWaitingScreen();
+        socket.emit('get current request', props.user);
     }
 
     const handleCreateRequest = () => {
@@ -89,10 +90,25 @@ export default function Lobby (props) {
         enqueueSnackbar("Signed in! Welcome, " + user.nickname + "!", { preventDuplicate: true, variant: "success" });
     }
 
+    const handleCurrentState = (state) => {
+        console.log("Current state: ", state);
+        switch(state) {
+            case "request": 
+                setWaitingScreen();
+                socket.emit('get current request', props.user);
+                break;
+            case "game": 
+                setGameScreen();
+                break;
+        }
+    }
+
     useEffect(() => {
         if(!user) {
             navigate("/sign-in");
         }
+        
+        socket.on('current state', handleCurrentState);
         socket.on('created request', createCallback);
         socket.on('player error', handlePlayerError);
         socket.on('connect_error', err => handleSocketErrors(err));
@@ -101,6 +117,8 @@ export default function Lobby (props) {
         socket.on('connect', handleCloseErrors);
         socket.on('users', handleUsers);
         socket.on('signed in token', handleSignedInToken);
+
+        socket.emit('get current state', user);
 
         return () => {
             socket.off('created request', createCallback);

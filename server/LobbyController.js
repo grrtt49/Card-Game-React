@@ -74,13 +74,9 @@ class LobbyController {
 	}
 
 	async createRequestForPlayer(io, player) {
-		if (player.getCurrentRequestID() == null) {
-			const newRequestID = await this.createRequest(player);
-			await this.mongooseController.updateUser(player.user, "currentRequestID", newRequestID);
-		}
-		else {
-			// console.log("Using current request: ", player.getCurrentRequestID());
-		}
+		//TODO: delete player's current request 
+		const newRequestID = await this.createRequest(player);
+		await this.mongooseController.updateUser(player.user, "currentRequestID", newRequestID);
 		
 		let request = await this.getRequest(player.getCurrentRequestID());
 
@@ -96,12 +92,6 @@ class LobbyController {
 	}
 
 	async joinRequestFromPlayer(io, player, requestID) {
-		if (player.getCurrentRequestID() != null) {
-			io.to(player.socket.id).emit('unsuccessful join');
-			return;
-		}
-
-		console.log("Joining request from player: ", player.id(), requestID);
 		let request = await this.getRequest(requestID);
 
 		if (request == null) {
@@ -117,39 +107,40 @@ class LobbyController {
 
 		io.to(player.socket.id).emit('successful join', request.toJSON());
 		if (request.request.players.length >= this.maxPlayersInGame) {
-			// TODO: add ability to readd it if a player leaves
+			// TODO: add ability to re-add it if a player leaves
 			io.emit('remove available request', request);
 		}
 		else {
-			io.to('room' + requestID).emit('updated request', request.toJSON());
+			io.to('room' + requestID).emit('need to get request');
 		}
 	}
 
 	async removeCurrentRequest(io, player) {
-		if (player.getCurrentRequestID() == null) {
+		let currentRequestID = player.getCurrentRequestID();
+		if (currentRequestID == null) {
 			console.log("No current game to cancel");
 			return;
 		}
 
-		let request = await this.getRequest(player.getCurrentRequestID());
+		let request = await this.getRequest(currentRequestID);
 
-		if(!request.request) {
+		if(request.request == null) {
 			console.log("Request already cancelled");
-			io.to(player.socket.id).emit('creator cancelled request', player.getCurrentRequestID());
+			io.to(player.socket.id).emit('creator cancelled request', currentRequestID);
 			io.to(player.socket.id).emit('player error', "The creator cancelled this game.");
 		}
 
-		player.socket.leave("room" + player.getCurrentRequestID());
+		player.socket.leave("room" + currentRequestID);
 		if (request.request.creator != null && request.request.creator.id == player.id()) {
-			await this.removeRequestById(player.getCurrentRequestID());
+			await this.removeRequestById(currentRequestID);
 			io.emit('remove available request', request);
-			io.to('room' + player.getCurrentRequestID()).emit('creator cancelled request', player.getCurrentRequestID());
-			io.to('room' + player.getCurrentRequestID()).emit('player error', "The creator cancelled this game.");
+			io.to('room' + currentRequestID).emit('creator cancelled request', currentRequestID);
+			io.to('room' + currentRequestID).emit('player error', "The creator cancelled this game.");
 			console.log("Cancelled created game");
 		}
 		else {
 			await request.removePlayer(player.id());
-			io.emit('updated request', request.toJSON());
+			io.to('room' + currentRequestID).emit('need to get request');
 		}
 		//TODO
 		await this.mongooseController.updateUser(player.user, "currentRequestID", null);
@@ -221,7 +212,7 @@ class LobbyController {
 				return;
 			}
 			await game.getGamePlayers(io, this.mongooseController);
-			io.to(player.socket.id).emit("game data", game.getPlayerGameData(player.getGamePlayerID()));
+			io.to(player.socket.id).emit("game data", game.getPlayerGameData(player));
 		}
 		catch (err) {
 			console.log("Get game data error: ", err);
@@ -248,8 +239,8 @@ class LobbyController {
 
 		if(game.isGameOver()) {
 			console.log("Game is over");
-			game.sendGameOverToPlayers(io);
-			await game.removeAllPlayers();
+			await game.updatePlayerStats();
+			// await game.removeAllPlayers();
 		}
 
 		return success;
@@ -263,7 +254,7 @@ class LobbyController {
 			return false;
 		}
 
-		await game.getGamePlayers(io, this.mongooseController);
+		await game.getGamePlayers(io, this.mongooseController); 
 		await game.endTurnForPlayer(player.getGamePlayerID());
 
 		game.sendDataToPlayers(io);
@@ -278,6 +269,41 @@ class LobbyController {
 		}
 		
 		game.sendMessageToPlayers(io, player, message);
+	}
+
+	async setPlayerPlayAgain(io, player, isPlayingAgain) {
+		let game = await this.getGame(player.getCurrentGameID());
+
+		if (game == null) {
+			console.log("No game to play again");
+			return false;
+		}
+
+		let playAgain = await game.setPlayerPlayAgain(player, isPlayingAgain);
+		if(playAgain) {
+			console.log("PLAYING AGAIN");
+			await this.playAgain(io, game);
+		}
+		else {
+			await game.getGamePlayers(io, this.mongooseController);
+			game.sendDataToPlayers(io);
+		}
+	}
+
+	async playAgain(io, game) {
+		await game.getGamePlayers(io, this.mongooseController); 
+		let newGame = await this.gameModel.createGame(game.game.players, this.mongooseController, io);
+
+		for (let i = 0; i < game.players.length; i++) {
+			game.players[i].user.currentGameID = newGame.gameID;
+			await game.saveUser(game.players[i].user);
+		}
+		game.players = [];
+		await game.saveGame();
+
+		let newGameContainer = new Game(newGame);
+		await newGameContainer.getGamePlayers(io, this.mongooseController); 
+		newGameContainer.sendDataToPlayers(io);
 	}
 }
 

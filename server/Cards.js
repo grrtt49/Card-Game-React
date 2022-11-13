@@ -115,10 +115,13 @@ class Cards {
 	}
 
 	drawCardForPlayer(playerIndex) {
-		let keys = Object.keys(this.hands[playerIndex]).sort().reverse();
+		let keys = Object.keys(this.hands[playerIndex]).map((key) => isNaN(parseInt(key)) ? key : parseInt(key));
+		keys.sort((a, b) => b - a);
+		console.log(keys);
 		let index = 0;
 		if(keys.length > 0) {
 			if(!isNaN(parseInt(keys[0]))) {
+				console.log("From player: ", playerIndex, " highest id = ", keys[0]);
 				index = parseInt(keys[0]) + 1;
 			}
 			else {

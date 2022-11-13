@@ -120,7 +120,7 @@ export default function PrimaryAppBar(props) {
             component="div"
             sx={{ display: { xs: 'none', sm: 'block' } }}
           >
-            Card Game
+            Onu
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: 'flex'} }}>

@@ -15,6 +15,10 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Confetti from 'react-dom-confetti';
+import LoadingButton from '@mui/lab/LoadingButton';
+import { useContext, useState } from 'react';
+import { SocketContext } from '../../context/socket';
+import ReplayIcon from '@mui/icons-material/Replay';
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -26,7 +30,12 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 export default function GameOverScreen(props) {
-    const { onClose, gameData, isOpen, onBackToHome } = props;
+    const { onClose, gameData, isOpen, onBackToHome, user, isPlayAgainLoading } = props;
+	const socket = useContext(SocketContext);
+
+    const handleSetPlayAgain = () => {
+        socket.emit('play again', user, true);
+    }
 
     let playerData = []; 
 
@@ -97,9 +106,12 @@ export default function GameOverScreen(props) {
             </DialogContent>
 
             <DialogActions>
-                <Button variant="contained" autoFocus onClick={onBackToHome}>
+                <Button variant="contained" onClick={onBackToHome}>
                     Back to Home
                 </Button>
+                <LoadingButton variant="contained" loadingPosition="start" startIcon={<ReplayIcon />} autoFocus onClick={handleSetPlayAgain} loading={isPlayAgainLoading}>
+                    Play again
+                </LoadingButton>
             </DialogActions>
         </BootstrapDialog>
     );

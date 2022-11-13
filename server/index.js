@@ -105,9 +105,21 @@ io.on('connection', (socket) => {
 			else if (authUser !== true){
 				player = authUser;
 			}
+			console.log("Getting request: ", player.getCurrentRequestID());
 			const request = await lobby.getRequest(player.getCurrentRequestID());
-			// console.log("CURRENT REQUEST: ", request);
-			io.emit('updated request', request);
+			let clientRequest = {
+				players: [],
+				isCreator: false,
+				isError: true,
+			};
+			if(request && request.request) {
+				clientRequest = {
+					players: request.request.players,
+					isCreator: request.request.creator.id == player.id(),
+					isError: false,
+				}
+			}
+			io.to(player.socket.id).emit('updated request', clientRequest);
 		}
 		catch (err) {
 			handleError(err, socket);
@@ -132,7 +144,7 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('remove current request', async () => {
+	socket.on('remove current request', async (userInfo) => {
 		try {
 			let authUser = await authenticate(userInfo, player, socket, io);
 			if(authUser !== true && authUser.user === undefined) {
@@ -234,35 +246,18 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('left current game', async () => {
+	socket.on('left current game', async (userInfo) => {
 		try {
-			if(player.currentRequestID != null) {
-				await lobby.removeCurrentRequest(io, player);
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
 			}
 
-			if(player.currentGameID != null) {
-				await lobby.removePlayerFromGame(io, player);
-			}
-		}
-		catch (err) {
-			handleError(err, socket);
-		}
-	});
-
-	socket.on('disconnect', async () => {
-		try {
-			if(player && player.getCurrentRequestID()) {
-				await lobby.removeCurrentRequest(io, player);
-			}
-		}
-		catch (err) {
-			handleError(err, socket);
-		}
-
-		try {
-			if(player && player.getCurrentGameID()) {
-				await lobby.removePlayerFromGame(io, player);
-			}
+			await lobby.removePlayerFromGame(io, player);
 		}
 		catch (err) {
 			handleError(err, socket);
@@ -320,7 +315,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('sign in token', async (userInfo) => {
-		console.log("Signing in");
+		console.log("Signing in with token");
 		try {
 			let sendNotification = (!player || socket.id != player.socket.id);
 
@@ -340,6 +335,76 @@ io.on('connection', (socket) => {
 		catch(err) {
 			handleError(err, socket);
 		}
+	});
+
+	socket.on('get current state', async (userInfo) => {
+		console.log("Getting state");
+		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
+
+			let playerState = "lobby";
+			if(player.getCurrentRequestID()) {
+				playerState = "request";
+				player.socket.join('room' + player.getCurrentRequestID());
+			}
+			if(player.getCurrentGameID()) {
+				playerState = "game";
+				player.socket.join('game_room' + player.getCurrentGameID());
+				console.log("Current game: ", player.getCurrentGameID());
+			}
+
+			console.log("Player in state: ", player.id(), playerState);
+			io.to(player.socket.id).emit('current state', playerState);
+		}
+		catch(err) {
+			handleError(err, socket);
+		}
+	});
+
+	socket.on('play again', async (userInfo, isPlayingAgain) => {
+		console.log("Play again");
+		try {
+			let authUser = await authenticate(userInfo, player, socket, io);
+			if(authUser !== true && authUser.user === undefined) {
+				console.log("Not authorized: ", authUser.user);
+				return;
+			}
+			else if (authUser !== true){
+				player = authUser;
+			}
+
+			await lobby.setPlayerPlayAgain(io, player, isPlayingAgain);
+		}
+		catch(err) {
+			handleError(err, socket);
+		}
+	});
+
+	socket.on('disconnect', async () => {
+		// try {
+		// 	if(player && player.getCurrentRequestID()) {
+		// 		await lobby.removeCurrentRequest(io, player);
+		// 	}
+		// }
+		// catch (err) {
+		// 	handleError(err, socket);
+		// }
+
+		// try {
+		// 	if(player && player.getCurrentGameID()) {
+		// 		await lobby.removePlayerFromGame(io, player);
+		// 	}
+		// }
+		// catch (err) {
+		// 	handleError(err, socket);
+		// }
 	});
 });
 

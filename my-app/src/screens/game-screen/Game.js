@@ -43,6 +43,7 @@ export default function Game(props) {
 		number: 1,
 		color: "red",
 	});
+	const [isPlayAgainLoading, setPlayAgainLoading] = useState(false);
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -112,6 +113,11 @@ export default function Game(props) {
 			props.handlePlayerInfoMessage("It's your turn now!");
 		}
 		setIsTurn(gameData.isTurn);
+		setShowGameOver(gameData.isGameOver);
+		if(gameData.isGameOver) {
+			setGameOverData(gameData.gameOverData);
+		}
+		setPlayAgainLoading(gameData.gameOverData.playingAgain);
 	};
 
 	const handleEndTurn = () => {
@@ -196,25 +202,18 @@ export default function Game(props) {
 
 	const handleBackToHome = () => {
 		props.backToHome();
-		socket.emit("left current game");
+		socket.emit("left current game", props.user);
 	};
-
-	const handleGameOver = (data) => {
-		setShowGameOver(true);
-		setGameOverData(data);
-	}
-
+ 
 	useEffect(() => {
 		socket.emit('get game data', props.user);
 
 		socket.on('game data', handleNewGameData);
-		socket.on('game over', handleGameOver);
 
 		return () => {
-		socket.off('game over', handleGameOver);
-		socket.off("game data", handleNewGameData);
+			socket.off("game data", handleNewGameData);
 		};
-	}, [socket, gameOverData, showGameOver]);
+	}, [socket]);
 
 	const compareCards = (a, b) => {
 		if(a.props.color < b.props.color) {
@@ -313,7 +312,7 @@ export default function Game(props) {
 			<Box height="50px"></Box>
 
 			<Messenger user={props.user} />
-			<GameOverScreen isOpen={showGameOver} onClose={()=>setShowGameOver(false)} onBackToHome={handleBackToHome} gameData={gameOverData}/>
+			<GameOverScreen user={props.user} isPlayAgainLoading={isPlayAgainLoading} isOpen={showGameOver} onClose={()=>setShowGameOver(false)} onBackToHome={handleBackToHome} gameData={gameOverData}/>
 		</Stack>
 	);
 	/*

@@ -17,6 +17,7 @@ class GameModel {
             cards: mongoose.Schema.Types.Mixed,
             currentTurn: Number,
             players: Array,
+            playersPlayAgain: mongoose.Schema.Types.Mixed,
             numPlayers: Number,
             isReversed: Boolean,
             room: String,
@@ -65,12 +66,18 @@ class GameModel {
             let playersFromClass = await this.getMongoPlayers(players, mongooseController, io);
 		    await cards.startGame(playersFromClass);
 
+            let playersPlayAgain = {};
+            players.forEach((player) => {
+                playersPlayAgain[player.id] = false;
+            });
+
             let gameID = crypto.randomBytes(80).toString("hex");
             let game = new this.Game({
                 gameID: gameID,
                 cards: cards.getData(),
                 currentTurn: 0,
                 players: players,
+                playersPlayAgain: playersPlayAgain,
                 numPlayers: players.length,
                 isReversed: false,
                 room: 'game_room' + gameID, 
